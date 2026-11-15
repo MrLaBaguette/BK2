@@ -360,6 +360,13 @@ tr.end td { background: var(--surface-2); font-weight: 650; }
 .mini-go { font-weight: 650; white-space: nowrap; }
 @media (min-width: 980px) { .mini-bar { display: none !important; } }
 
+/* ---------- wykres wartości inwestycji ---------- */
+.sub-h { font-size: 16px; margin: 18px 0 10px; }
+.chart .g-int { stroke: var(--t-tos); }
+.legend i.lg-cap { border-top-color: var(--bal); border-top-style: dashed; }
+.legend i.lg-int { border-top-color: var(--t-tos); }
+.legend b { font-variant-numeric: tabular-nums; }
+
 </style>
 </head>
 <body>
@@ -598,6 +605,9 @@ tr.end td { background: var(--surface-2); font-weight: 650; }
       <section class="panel" aria-labelledby="h-plan">
         <h2 id="h-plan">Plan zakupów <button type="button" class="tip" data-tip="plan" aria-label="Wyjaśnienie: jak czytać plan">?</button></h2>
         <div id="r-plan"></div>
+        <h3 class="sub-h">Wartość inwestycji</h3>
+        <div id="r-growth-legend" class="legend"></div>
+        <div id="r-growth" class="chart"></div>
         <details class="sub-details" id="d-table">
           <summary>Pełny harmonogram miesiąc po miesiącu</summary>
           <div id="r-table"></div>
@@ -1384,6 +1394,7 @@ var BK2 = (function () {
     plan: 'Co miesiąc kupujesz obligacje za całą dostępną gotówkę (wpłata, odsetki, pieniądze z wykupu), w pełnych setkach. Każdą trzymasz do wykupu albo do końca dopłat – wtedy sprzedajesz wszystko i nadpłacasz kredyt.',
     seria: 'Kod serii to symbol i miesiąc wykupu, np. EDO0434 = EDO z wykupem w kwietniu 2034. Znajdziesz go przy każdej pozycji na koncie obligacji.',
     prosty: 'Kupujesz schodkami: najpierw najdłuższe obligacje, potem coraz krótsze, bez przeplatania. Krótkie wstawki usuwamy, jeśli plan traci przez to najwyżej 1% (próg zmienisz w trybie ekspert).',
+    odsetki: 'Wartość łącznie minus zgromadzony kapitał: odsetki po podatku Belki. Gdybyś sprzedał obligacje przed terminem, potrącamy też opłatę za wcześniejszy wykup, dlatego na początku linia może być lekko pod zerem.',
     portfel: 'Ile dostałbyś na rękę, gdybyś w danym miesiącu sprzedał wszystkie obligacje: po opłatach za wcześniejszy wykup i po podatku Belki, razem z gotówką czekającą na zakup.'
   };
   var QUIPS = [
@@ -1766,6 +1777,7 @@ var BK2 = (function () {
     renderAfter(res, P);
     renderHoldResult(res);
     renderPlan(res);
+    renderGrowth(res);
     if ($('#d-table').open) renderTable(res);
     renderWhy(res, P);
     renderWarnings(res, P);
@@ -1948,6 +1960,47 @@ var BK2 = (function () {
     else if (res.cross) note = 'Od <b>' + mon(res.cross.abs) + '</b> portfel przewyższa dług – możesz spłacić całość.';
     else note = 'W ' + mon(L.endAbs) + ' portfel pokryje ' + pct(Math.min(1, res.bonds.net / L.S120), 0) + ' długu.';
     $('#r-chart-note').innerHTML = note;
+  }
+
+  /* ---------------- wartość inwestycji (w planie zakupów) ---------------- */
+  function renderGrowth(res) {
+    var box = $('#r-growth'), rows = res.sim.rows, L = res.loan;
+    if (!rows.length) { box.innerHTML = ''; $('#r-growth-legend').innerHTML = ''; return; }
+    var W = Math.round(Math.max(300, Math.min(820, box.clientWidth || 640)));
+    var narrow = W < 520, H = narrow ? 220 : 260, pl = narrow ? 50 : 62, pr = 14, pt = 14, pb = 30;
+    var start = res.portfolio0 || 0, cap = start;
+    var pts = [{ abs: L.endAbs - res.months, total: start, cap: start, int: 0 }];
+    rows.forEach(function (r) { cap += r.deposit; pts.push({ abs: r.abs, total: r.portfolio, cap: cap, int: r.portfolio - cap }); });
+    var ymax = 0, ymin = 0;
+    pts.forEach(function (p) { ymax = Math.max(ymax, p.total, p.cap); ymin = Math.min(ymin, p.int); });
+    var step = niceStep((ymax - ymin) / 5);
+    ymax = Math.max(step, Math.ceil(ymax / step - 1e-9) * step);
+    ymin = ymin < 0 ? -Math.ceil(-ymin / step - 1e-9) * step : 0;
+    var x0 = pts[0].abs, x1 = pts[pts.length - 1].abs, span = Math.max(1, x1 - x0);
+    function X(a) { return pl + (a - x0) / span * (W - pl - pr); }
+    function Y(v) { return pt + (ymax - v) / (ymax - ymin) * (H - pt - pb); }
+    function path(key) { return pts.map(function (p, i) { return (i ? 'L' : 'M') + X(p.abs).toFixed(1) + ' ' + Y(p[key]).toFixed(1); }).join(''); }
+    var g = '';
+    for (var v = ymin; v <= ymax + 1e-6; v += step) {
+      g += '<line class="' + (Math.abs(v) < 1e-6 ? 'g-axis' : 'g-grid') + '" x1="' + pl + '" x2="' + (W - pr) + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '" stroke-width="1"/>' +
+        '<text x="' + (pl - 8) + '" y="' + (Y(v) + 4).toFixed(1) + '" text-anchor="end">' + (v < 0 ? '−' + yLabel(-v) : yLabel(v)) + '</text>';
+    }
+    var every = span / 12 > (narrow ? 5 : 9) ? 2 : 1;
+    for (var a = x0; a <= x1; a++) {
+      if (E.monthOf(a) === 1 && E.yearOf(a) % every === 0) {
+        g += '<text x="' + X(a).toFixed(1) + '" y="' + (H - pb + 19) + '" text-anchor="middle">' + E.yearOf(a) + '</text>';
+      }
+    }
+    g += '<path d="' + path('cap') + '" fill="none" class="g-bal" stroke-width="2" stroke-dasharray="6 4"/>' +
+      '<path d="' + path('int') + '" fill="none" class="g-int" stroke-width="2.5" stroke-linejoin="round"/>' +
+      '<path d="' + path('total') + '" fill="none" class="g-port" stroke-width="3" stroke-linejoin="round"/>';
+    var last = pts[pts.length - 1];
+    box.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="img" aria-label="Wykres wartości inwestycji: w ' + mon(L.endAbs) +
+      ' wartość łącznie ' + zl(last.total) + ', zgromadzony kapitał ' + zl(last.cap) + ', odsetki po podatku ' + zl(last.int) + '.">' + g + '</svg>';
+    $('#r-growth-legend').innerHTML =
+      '<span><i class="lg-port"></i>Wartość łącznie <b>' + zl(last.total) + '</b></span>' +
+      '<span><i class="lg-cap"></i>Zgromadzony kapitał <b>' + zl(last.cap) + '</b></span>' +
+      '<span><i class="lg-int"></i>Odsetki po podatku <b>' + zl(last.int) + '</b> ' + tip('odsetki', 'odsetki po podatku') + '</span>';
   }
 
   /* ---------------- 4. po dopłatach ---------------- */
@@ -2359,7 +2412,7 @@ var BK2 = (function () {
   window.addEventListener('resize', function () {
     closeTip();
     clearTimeout(rz);
-    rz = setTimeout(function () { if (last) renderChart(last.res); }, 150);
+    rz = setTimeout(function () { if (last) { renderChart(last.res); renderGrowth(last.res); } }, 150);
   });
 
   /* ---------------- start ---------------- */
