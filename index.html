@@ -256,8 +256,6 @@ details[open] > summary::before { transform: rotate(90deg); }
 .bar-row.is-you .bar { background: var(--sock); }
 .you { display: inline-block; font-size: 12px; font-weight: 700; color: var(--on-sock); background: var(--sock); border-radius: 999px; padding: 1px 8px; margin-left: 6px; vertical-align: 1px; }
 .verdict { font-size: 17px; margin: 0 0 8px; }
-.cmp-notes { margin: 0; padding-left: 18px; color: var(--muted); font-size: 14px; }
-.cmp-notes li { margin-bottom: 4px; }
 
 /* ---------- wykres ---------- */
 .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 14px; margin: -4px 0 8px; }
@@ -282,16 +280,6 @@ details[open] > summary::before { transform: rotate(90deg); }
 
 /* ---------- po dopłatach ---------- */
 .after-head { margin: 0 0 12px; }
-.scens { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
-.scen { border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
-.scen h3 { display: flex; align-items: baseline; gap: 8px; }
-.scen h3 small { font-weight: 400; color: var(--muted); font-size: 13px; }
-.scen dl { margin: 0; display: grid; gap: 8px; }
-.scen dt { font-size: 13px; color: var(--muted); }
-.scen dd { margin: 0; font-weight: 700; font-size: 18px; font-variant-numeric: tabular-nums; }
-.scen dd small { display: block; font-weight: 400; font-size: 13px; color: var(--muted); }
-.scen .opt dd { color: var(--accent-strong); }
-.scen .shock small { color: var(--err); }
 .after-tbl th, .after-tbl td { white-space: normal; vertical-align: top; padding: 7px 8px; }
 .after-tbl td.good { color: var(--accent-strong); font-weight: 650; }
 .paid { background: var(--accent-soft); border-radius: 12px; padding: 12px 14px; margin: 0 0 12px; font-weight: 600; }
@@ -363,6 +351,14 @@ tr.end td { background: var(--surface-2); font-weight: 650; }
 .t-edo { background: var(--t-edo); } .t-tos { background: var(--t-tos); } .t-coi { background: var(--t-coi); }
 .t-dor { background: var(--t-dor); } .t-ror { background: var(--t-ror); } .t-ros { background: var(--t-ros); }
 .t-rod { background: var(--t-rod); } .t-cash { background: var(--bar-grey); } .t-end { background: var(--bal); }
+
+/* ---------- pasek z wynikiem (tylko wąskie ekrany) ---------- */
+.mini-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  background: var(--hero-bg); color: var(--hero-ink); text-decoration: none; font-size: 15px; box-shadow: 0 -4px 16px rgba(0, 0, 0, .15); }
+.mini-bar b { font-variant-numeric: tabular-nums; }
+.mini-go { font-weight: 650; white-space: nowrap; }
+@media (min-width: 980px) { .mini-bar { display: none !important; } }
 
 </style>
 </head>
@@ -633,6 +629,7 @@ tr.end td { background: var(--surface-2); font-weight: 650; }
 </footer>
 
 <div id="tipbox" role="tooltip" hidden></div>
+<a id="mini-bar" class="mini-bar" href="#wyniki" hidden><span id="mini-text"></span><span class="mini-go">Zobacz wynik ↓</span></a>
 
 <script id="engine">
 /* =====================================================================
@@ -650,17 +647,19 @@ var BK2 = (function () {
 
   var T_SUB = 120;          // numer ostatniej raty z dopłatą
   var EPS = 1e-7;           // próg „daje więcej niż gotówka”
+  var EARLY_LOCK = 36;      // nadpłata w pierwszych 36 miesiącach grozi utratą dopłat
+  var MIN_STAGE = 6;        // prosty plan: etap krótszy niż 6 mies. scalamy z sąsiednim
 
   var ORDER = ['ROR', 'DOR', 'TOS', 'COI', 'EDO', 'ROS', 'ROD'];
 
   // kind: monthly – kupon co miesiąc, yearly – kupon co rok, cap – kapitalizacja roczna
   // Opłata ≤ odsetki: przy cap zawsze, przy kuponowych tylko w 1. okresie odsetkowym.
   var INFO = {
-    ROR: { months: 12,  kind: 'monthly', index: 'nbp',   family: false, name: 'roczne, odsetki co miesiąc' },
-    DOR: { months: 24,  kind: 'monthly', index: 'nbp',   family: false, name: 'dwuletnie, odsetki co miesiąc' },
-    TOS: { months: 36,  kind: 'cap',     index: 'fixed', family: false, name: 'trzyletnie, stałe oprocentowanie' },
-    COI: { months: 48,  kind: 'yearly',  index: 'cpi',   family: false, name: 'czteroletnie, odsetki co rok' },
-    EDO: { months: 120, kind: 'cap',     index: 'cpi',   family: false, name: 'dziesięcioletnie, kapitalizowane' },
+    ROR: { months: 12,  kind: 'monthly', index: 'nbp',   family: false },
+    DOR: { months: 24,  kind: 'monthly', index: 'nbp',   family: false },
+    TOS: { months: 36,  kind: 'cap',     index: 'fixed', family: false },
+    COI: { months: 48,  kind: 'yearly',  index: 'cpi',   family: false },
+    EDO: { months: 120, kind: 'cap',     index: 'cpi',   family: false },
     ROS: { months: 72,  kind: 'cap',     index: 'cpi',   family: true,  name: 'rodzinne sześcioletnie' },
     ROD: { months: 144, kind: 'cap',     index: 'cpi',   family: true,  name: 'rodzinne dwunastoletnie' }
   };
@@ -1109,7 +1108,8 @@ var BK2 = (function () {
     }
     return out;
   }
-  // 2) Upraszczanie: scalamy etap z sąsiednim, dopóki wynik nie spadnie o więcej niż tol (np. 0,01).
+  // 2) Upraszczanie: krótkie etapy (< MIN_STAGE mies.) scalamy z sąsiednim, o ile wynik nie spada o więcej niż tol.
+  //    Dłuższych etapów nie ruszamy: schodki od najdłuższej do najkrótszej obligacji to cel, a nie jeden typ na cały okres.
   function simplePlan(P, L, opt, X, hold, tol) {
     var H = T_SUB - L.m0 - 1;
     var optNet = simulate(P, X, opt, true, hold).net;
@@ -1122,7 +1122,7 @@ var BK2 = (function () {
     for (;;) {
       var segs = segmentsOf(ch, H), cand = null;
       for (var i = 0; i < segs.length; i++) {
-        if (segs[i].c === 'CASH') continue;
+        if (segs[i].c === 'CASH' || segs[i].to - segs[i].from + 1 >= MIN_STAGE) continue;
         for (var d = -1; d <= 1; d += 2) {
           var nb = segs[i + d];
           if (!nb || nb.c === 'CASH') continue;
@@ -1171,7 +1171,7 @@ var BK2 = (function () {
       var cur = bal > 0 ? capital + interest : 0;
       bal -= capital;
       var extra = X + (one[abs] || 0) + (sched - cur) + (hold ? hold.flows[m - L.m0] : 0);
-      if (m <= 36) {
+      if (m <= EARLY_LOCK) {
         if (extra > 0.005) early.push(abs);
         collected += extra;
         continue;
@@ -1241,7 +1241,12 @@ var BK2 = (function () {
     var need = null, X = P.X, tol = P.planTolerance === undefined ? 0.01 : P.planTolerance;
     // prosty plan dobieramy do kwoty, jaką odkładasz; w trybie „ile muszę” – do kwoty wyliczonej z planem optymalnym
     var plan = simplePlan(P, L, opt, P.question === 'need' ? requiredX(P, opt, hold).X : X, hold, tol).plan;
-    if (P.question === 'need') { need = requiredX(P, plan, hold); X = need.X; }
+    if (P.question === 'need') {
+      need = requiredX(P, plan, hold);
+      var needOpt = requiredX(P, opt, hold);
+      if (need.X > needOpt.X) { plan = opt; need = needOpt; }   // prostota nie może kosztować wyższej raty
+      X = need.X;
+    }
     var sim = simulate(P, X, plan, false, hold);
     var optNet = simulate(P, X, opt, true, hold).net;
     var C = variantC(P, X, hold);
@@ -1294,6 +1299,7 @@ var BK2 = (function () {
       bonds: { net: sim.net, gross: sim.gross, debt: Math.max(0, R), surplus: Math.max(0, -R), R: R },
       C: { balance: C.balance, leftover: C.leftover, early36: C.early36, payAbs: C.payAbs },
       holdings: hold,
+      portfolio0: hold.liq0,
       D: { sock: sim.deposits + hold.cash, sockNet: sockNet, debt: Math.max(0, L.S120 - sockNet), surplus: Math.max(0, sockNet - L.S120), needX: sockX },
       irr: irrY,
       after: afterSubsidy(L, P, R),
@@ -1333,7 +1339,7 @@ var BK2 = (function () {
   }
 
   return {
-    T_SUB: T_SUB, ORDER: ORDER, INFO: INFO, BOND_DEFAULTS: BOND_DEFAULTS, MSHORT: MSHORT, MFULL: MFULL, MLOC: MLOC,
+    T_SUB: T_SUB, EARLY_LOCK: EARLY_LOCK, MIN_STAGE: MIN_STAGE, ORDER: ORDER, INFO: INFO, BOND_DEFAULTS: BOND_DEFAULTS, MSHORT: MSHORT, MFULL: MFULL, MLOC: MLOC,
     defaults: defaults, clone: clone, absOf: absOf, yearOf: yearOf, monthOf: monthOf, inflationFor: inflationFor,
     periodRate: periodRate, bondRun: bondRun, enabledTypes: enabledTypes, optimize: optimize,
     loan: loan, annuity: annuity, amortize: amortize, afterSubsidy: afterSubsidy, oneTimeMap: oneTimeMap,
@@ -1377,7 +1383,7 @@ var BK2 = (function () {
     warD: 'Te same pieniądze leżą w gotówce na 0% i w dniu końca dopłat idą na jednorazową nadpłatę.',
     plan: 'Co miesiąc kupujesz obligacje za całą dostępną gotówkę (wpłata, odsetki, pieniądze z wykupu), w pełnych setkach. Każdą trzymasz do wykupu albo do końca dopłat – wtedy sprzedajesz wszystko i nadpłacasz kredyt.',
     seria: 'Kod serii to symbol i miesiąc wykupu, np. EDO0434 = EDO z wykupem w kwietniu 2034. Znajdziesz go przy każdej pozycji na koncie obligacji.',
-    prosty: 'Kupujesz po kolei, bez przeplatania typów. Upraszczamy plan, dopóki daje najwyżej o 1% mniej niż plan optymalny (próg zmienisz w trybie ekspert).',
+    prosty: 'Kupujesz schodkami: najpierw najdłuższe obligacje, potem coraz krótsze, bez przeplatania. Krótkie wstawki usuwamy, jeśli plan traci przez to najwyżej 1% (próg zmienisz w trybie ekspert).',
     portfel: 'Ile dostałbyś na rękę, gdybyś w danym miesiącu sprzedał wszystkie obligacje: po opłatach za wcześniejszy wykup i po podatku Belki, razem z gotówką czekającą na zakup.'
   };
   var QUIPS = [
@@ -1742,6 +1748,7 @@ var BK2 = (function () {
 
   function showStatus(title, text) {
     last = null;
+    $('#mini-bar').hidden = true;
     $('#r-body').hidden = true;
     var st = $('#r-status');
     st.hidden = false;
@@ -1763,6 +1770,27 @@ var BK2 = (function () {
     renderWhy(res, P);
     renderWarnings(res, P);
     renderFeelings(res);
+    renderMiniBar(res, P);
+  }
+
+  /* ---------------- pasek z wynikiem (telefon) ---------------- */
+  function renderMiniBar(res, P) {
+    var bar = $('#mini-bar'), txt;
+    if (!res) { bar.hidden = true; return; }
+    if (state.feelings) txt = P.question === 'need' ? 'Skarpeta: odkładaj <b>' + zl(res.D.needX) + '</b> / mies.' : 'Skarpeta: spłacisz <b>' + zl(res.D.sockNet) + '</b>';
+    else if (P.question === 'need') txt = 'Odkładaj <b>' + zl(res.X) + '</b> / mies.';
+    else txt = res.bonds.debt <= 0 ? 'Spłacisz <b>cały kredyt</b>' : 'Spłacisz <b>' + zl(res.bonds.net) + '</b> z ' + zl(res.loan.S120);
+    $('#mini-text').innerHTML = txt;
+    bar.dataset.ready = '1';
+    updateMiniBar();
+  }
+  var answerVisible = false;
+  function updateMiniBar() {
+    var bar = $('#mini-bar');
+    bar.hidden = !last || answerVisible || bar.dataset.ready !== '1';
+  }
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (en) { answerVisible = en[0].isIntersecting; updateMiniBar(); }).observe($('#wyniki'));
   }
 
   /* ---------------- 1. karta odpowiedzi ---------------- */
@@ -1867,7 +1895,7 @@ var BK2 = (function () {
     var narrow = W < 520, H = narrow ? 250 : 300;
     var pl = narrow ? 50 : 62, pr = 14, pt = 18, pb = 30;
     var L = res.loan, rows = res.sim.rows;
-    var pts = [{ abs: L.endAbs - res.months, bal: L.Sm0, port: 0, sock: 0 }], cum = 0;
+    var pts = [{ abs: L.endAbs - res.months, bal: L.Sm0, port: res.portfolio0 || 0, sock: 0 }], cum = 0;
     rows.forEach(function (r) { cum += r.deposit; pts.push({ abs: r.abs, bal: r.balance, port: r.portfolio, sock: cum }); });
     var ymax = 0;
     pts.forEach(function (p) { ymax = Math.max(ymax, p.bal, p.port, p.sock); });
@@ -2151,7 +2179,7 @@ var BK2 = (function () {
     items.push('Każdą wpłatę od razu zamieniamy na obligacje (100 zł za sztukę) – te, które przy tylu miesiącach do końca dopłat dają najwięcej na czysto.');
     items.push('Nadpłata w okresie dopłat daje tylko ~' + pct(P.r2, 0) + ' ' + tip('nadplata2', 'dlaczego nadpłata daje tylko 2%') + ', bo zmniejsza też dopłatę państwa.');
     items.push('Obligacje rodzinne (ROS, ROD – dla pobierających 800+): <b>' + (P.family.enabled ? 'uwzględniamy' : 'pomijamy') + '</b>.');
-    items.push('Plan zakupów jest możliwie prosty ' + tip('prosty', 'plan uproszczony') + ': upraszczamy go, dopóki kosztuje najwyżej ' + pct(P.planTolerance, 0) + ' wyniku.');
+    items.push('Plan zakupów to schodki ' + tip('prosty', 'plan uproszczony') + ': od najdłuższych obligacji do najkrótszych, bez przeplatania (koszt najwyżej ' + pct(P.planTolerance, 0) + ' wyniku).');
     var hcount = P.holdings[P.holdings.mode].length;
     if (hcount) items.push('Obligacje, które już masz (' + hcount + ' poz.), rosną dalej według dzisiejszych założeń; pieniądze z ich wykupu kupują kolejne obligacje według planu.');
     items.push(P.commission > 0 ? 'Bank pobiera <b>' + pct(P.commission) + '</b> prowizji od nadpłaty.' : 'Bank nie pobiera prowizji za nadpłatę (po 36 miesiącach to standard).');

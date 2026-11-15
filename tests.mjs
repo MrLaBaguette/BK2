@@ -292,12 +292,12 @@ test('H6. posiadane obligacje zmniejszają wymagane X i zwiększają nadpłatę'
 
 /* ------------------------------------------------------------------ */
 group('Prosty plan zakupów (prostota wygrywa do 1%)');
-test('P1. domyślnie: jedna obligacja przez cały okres, strata ≤ 1% względem planu optymalnego', () => {
-  const kinds = new Set(resDef.sim.rows.flatMap((r) => r.buys.map((b) => b.type)));
+test('P1. domyślnie: schodki EDO → TOS → ROR, strata ≤ 1% względem planu optymalnego', () => {
+  const labels = resDef.plan.map((s) => s.label).filter((l) => l !== 'END' && l !== 'CASH');
   ok(resDef.planInfo.simple, 'plan powinien być uproszczony');
-  ok(kinds.size === 1, `kupowane typy: ${[...kinds].join(', ')}`);
+  ok(labels.join(' → ') === 'EDO → TOS → ROR', `plan: ${labels.join(' → ')}`);
   ok(resDef.planInfo.loss >= 0 && resDef.planInfo.loss <= 0.01 * resDef.planInfo.optNet, `strata ${resDef.planInfo.loss}`);
-  return `${[...kinds].join('')} przez cały okres; plan optymalny dałby +${zl(resDef.planInfo.loss)} (${(resDef.planInfo.loss / resDef.planInfo.optNet * 100).toFixed(2)}%)`;
+  return `${labels.join(' → ')}; plan optymalny dałby +${zl(resDef.planInfo.loss)} (${(resDef.planInfo.loss / resDef.planInfo.optNet * 100).toFixed(2)}%)`;
 });
 test('P2. plan prosty nie przeplata: każdy typ kupujesz w jednym ciągłym okresie', () => {
   for (const p of [params(), params({ inflation: 0.05 }), params({ launchAbs: E.absOf(2025, 3) }), params({ family: { enabled: true, monthly: 0 } })]) {
@@ -310,6 +310,53 @@ test('P3. tolerancja 0 → plan optymalny', () => {
   const res = E.compute(params({ planTolerance: 0 }));
   ok(!res.planInfo.simple && Math.abs(res.planInfo.loss) < 1e-6, 'plan optymalny');
   near(res.bonds.net, 93256, 1, 'nadpłata jak w planie optymalnym');
+});
+
+/* ------------------------------------------------------------------ */
+group('Regresja – poprawki z przeglądu kodu');
+test('R1 (#1). prosty plan nie zwija się do jednego typu i nie przegrywa ze „samym TOS”', () => {
+  const allTos = (p) => {
+    const ch = ['CASH']; for (let h = 1; h <= 120; h++) ch[h] = h === 1 ? 'CASH' : 'TOS';
+    return E.simulate(p, 1000, { choice: ch, ranking: ch.map((c) => (c === 'CASH' ? [] : [c])) }, true).net;
+  };
+  for (const infl of [0.025, 0.05]) {
+    const p = params({ inflation: infl }), r = E.compute(p);
+    const kinds = new Set(r.sim.rows.flatMap((x) => x.buys.map((b) => b.type)));
+    ok(kinds.size > 1, `inflacja ${infl}: jeden typ (${[...kinds]})`);
+    ok(r.bonds.net >= allTos(p) - 1e-6, `inflacja ${infl}: plan ${r.bonds.net} < same TOS ${allTos(p)}`);
+    ok(r.sim.rows[0].buys[0].type === 'EDO', `inflacja ${infl}: start od ${r.sim.rows[0].buys[0].type}, oczekiwano EDO`);
+  }
+  // etapy krótsze niż MIN_STAGE są scalane (oprócz ostatniego miesiąca w gotówce)
+  const short = resDef.plan.filter((s) => !['END', 'CASH'].includes(s.label) && s.to - s.from + 1 < E.MIN_STAGE);
+  ok(!short.length, 'krótkie etapy: ' + short.map((s) => s.label).join(', '));
+});
+test('R2 (#2). „ile muszę odkładać”: prosty plan nie podnosi X względem optymalnego', () => {
+  for (let L = E.absOf(2023, 7); L <= E.absOf(2025, 6); L += 1) for (const K of [300000, 500000]) {
+    const a = E.compute(params({ K, launchAbs: L, question: 'need' })).X;
+    const b = E.compute(params({ K, launchAbs: L, question: 'need', planTolerance: 0 })).X;
+    ok(a <= b, `${E.fmtMM(L)}, K = ${K}: prosty ${a} > optymalny ${b}`);
+  }
+  return '48 kombinacji (uruchomienie 07.2023–06.2025 × 2 kwoty)';
+});
+test('R3 (#4). wykres zaczyna się od dzisiejszej wartości posiadanych obligacji', () => {
+  const r = E.compute(holdP({ mode: 'types', types: [{ type: 'EDO', nominal: 300000, value: 330000, before: false }] }));
+  ok(r.portfolio0 > 300000 && Math.abs(r.portfolio0 - r.holdings.liq0) < 1e-9, `portfolio0 = ${r.portfolio0}`);
+  ok(resDef.portfolio0 === 0, 'bez obligacji start od 0');
+});
+test('R4 (#5). dokładne wartości (plan optymalny = SPEC, zgodne z niezależnym modelem)', () => {
+  const o = E.compute(params({ planTolerance: 0 })), o4 = E.compute(P400({ planTolerance: 0 }));
+  near(o.bonds.net, 93256.36, 1, 'nadpłata (500 tys.)');
+  near(o4.bonds.net, 93256.36, 1, 'nadpłata (400 tys.)');
+  near(o.C.balance, 211064.37, 1, 'wariant C (500 tys.)');
+  near(o4.C.balance, 151064.37, 1, 'wariant C (400 tys.)');
+  near(o.feelings.cost, 10256.36, 1, 'KOSZT');
+  near(o.feelings.inflationLoss, 6622.43, 1, 'INFLACJA');
+  ok(E.compute(params({ planTolerance: 0, question: 'need' })).X === 3300 && E.compute(P400({ planTolerance: 0, question: 'need' })).X === 2600, 'ile odkładać');
+});
+test('R5 (#6). stała zamiast liczby 36: ostrzeżenie od pierwszej symulowanej raty ≤ 36', () => {
+  ok(E.EARLY_LOCK === 36, 'EARLY_LOCK');
+  const w = (m0) => E.compute(params({ launchAbs: E.absOf(2026, 11) - m0 })).warnings.some((x) => x.code === 'early36');
+  ok(w(35) && !w(36), `m0 = 35 → ${w(35)}, m0 = 36 → ${w(36)}`);
 });
 
 console.log(`\n${pass} zaliczonych, ${fail} niezaliczonych`);
