@@ -2022,9 +2022,6 @@ var BK2 = (function () {
           : '<td class="good">' + zl(s.low) + '</td><td class="good">' + (s.shorterBy > 0 ? E.fmtNum(s.shorterBy / 12, 1) + NB + 'roku' : '—') + '</td>') + '</tr>';
     });
     h += '</tbody></table></div>';
-    if (!paid && sc.length) {
-      h += '<p class="hint" style="margin:0">Mniej odsetek niż bez strategii: niższa rata ' + range(sc, function (s) { return s.saveLow; }) + ', krótszy okres ' + range(sc, function (s) { return s.saveShort; }) + '.</p>';
-    }
     $('#r-after').innerHTML = h;
   }
 
@@ -2088,7 +2085,6 @@ var BK2 = (function () {
     res.sim.rows.forEach(function (r) { r.buys.forEach(function (b) { types[b.type] = (types[b.type] || 0) + b.units; }); });
     var parts = Object.keys(types).map(function (t) { return t + ' – ' + n0(types[t]) + ' szt.'; });
     if (parts.length) h += '<p class="hint" style="margin:0 0 8px">Łącznie kupisz: ' + parts.join(', ') + '</p>';
-    if (pi && pi.simple && pi.loss > 0.5) h += '<p class="hint" style="margin:0 0 12px">Plan uproszczony ' + tip('prosty', 'plan uproszczony') + ' – optymalny, z przeplataniem typów, dałby +' + zl(pi.loss) + ' (' + pct(pi.loss / pi.optNet, 2) + ').</p>';
     $('#r-plan').innerHTML = h;
   }
   function buysText(r) {
@@ -2163,7 +2159,7 @@ var BK2 = (function () {
       var r = it.run, info = E.INFO[it.type], hold;
       if (r.matured) hold = 'do wykupu (' + info.months + ' mies.)' + (h > info.months ? ', potem ' + (h - info.months) + ' mies. w kolejnych' : '');
       else hold = h + ' mies., wykup przed terminem';
-      t += '<tr' + (it.type === best ? ' class="best"' : '') + '><td>' + it.type + (it.type === best ? ' · w planie' : '') + (it.type === top && top !== best ? ' · najwięcej' : '') + '</td><td class="l">' + hold + '</td><td>' + zl2(r.gross) + '</td><td>' + (r.fee ? '−' + zl2(r.fee) : '0,00 zł') +
+      t += '<tr' + (it.type === best ? ' class="best"' : '') + '><td>' + it.type + (it.type === best ? ' · w planie' : '') + '</td><td class="l">' + hold + '</td><td>' + zl2(r.gross) + '</td><td>' + (r.fee ? '−' + zl2(r.fee) : '0,00 zł') +
         '</td><td>−' + zl2(r.tax) + '</td><td>' + zl2(r.net) + '</td><td>' + zl2(it.f * 100) + '</td></tr>';
     });
     t += '<tr' + (best === 'CASH' ? ' class="best"' : '') + '><td>Gotówka</td><td class="l">' + h + ' mies.</td><td>0,00 zł</td><td>0,00 zł</td><td>0,00 zł</td><td>100,00 zł</td><td>100,00 zł</td></tr>';
