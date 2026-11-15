@@ -47,6 +47,7 @@
   --quip-bg: #eeefee;
   --quip-ink: #4f5452;
   --shadow: 0 1px 2px rgba(16, 28, 24, .05), 0 2px 10px rgba(16, 28, 24, .04);
+  --t-edo: #0b6b57; --t-tos: #2f62a8; --t-coi: #6f4aa8; --t-dor: #8f5f12; --t-ror: #ad4622; --t-ros: #9c3f66; --t-rod: #7d3552; --on-seg: #ffffff;
   --radius: 14px;
   --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
@@ -62,6 +63,7 @@
     --sock: #d0a46a; --on-sock: #1f170c; --sock-bg: #231e17; --sock-line: #4a3f30; --sock-hero: #3f372d;
     --tip-bg: #e5ebe8; --tip-ink: #111816; --quip-bg: #212a27; --quip-ink: #b9c2be;
     --shadow: 0 1px 2px rgba(0, 0, 0, .3);
+    --t-edo: #4cbf9f; --t-tos: #79a9ea; --t-coi: #b79ae6; --t-dor: #e2b468; --t-ror: #ec9a78; --t-ros: #e596b8; --t-rod: #cf86a6; --on-seg: #0b1210;
     color-scheme: dark;
   }
 }
@@ -76,6 +78,7 @@
   --sock: #d0a46a; --on-sock: #1f170c; --sock-bg: #231e17; --sock-line: #4a3f30; --sock-hero: #3f372d;
   --tip-bg: #e5ebe8; --tip-ink: #111816; --quip-bg: #212a27; --quip-ink: #b9c2be;
   --shadow: 0 1px 2px rgba(0, 0, 0, .3);
+  --t-edo: #4cbf9f; --t-tos: #79a9ea; --t-coi: #b79ae6; --t-dor: #e2b468; --t-ror: #ec9a78; --t-ros: #e596b8; --t-rod: #cf86a6; --on-seg: #0b1210;
   color-scheme: dark;
 }
 
@@ -167,7 +170,7 @@ input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-v
 .switch input:checked + .sw { background: var(--accent-fill); }
 .switch input:checked + .sw::after { transform: translateX(16px); }
 .switch input:focus-visible + .sw { outline: 3px solid var(--focus); outline-offset: 2px; }
-.switch.small { font-size: 13px; font-weight: 400; color: var(--muted); min-height: 36px; gap: 8px; }
+.switch.small { font-size: 15px; font-weight: 400; color: var(--ink); min-height: 36px; gap: 8px; }
 .switch.small .sw { width: 30px; height: 18px; }
 .switch.small .sw::after { width: 12px; height: 12px; }
 .switch.small input:checked + .sw::after { transform: translateX(12px); }
@@ -332,6 +335,35 @@ tr.end td { background: var(--surface-2); font-weight: 650; }
 .foot h2 { font-size: 15px; color: var(--ink); margin: 0 0 8px; }
 .foot p { max-width: 80ch; margin: 0 0 8px; }
 
+/* ---------- posiadane obligacje ---------- */
+#holdings > summary { min-height: 28px; }
+#holdings[open] > summary { margin-bottom: 10px; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 0 0 12px; }
+.seg label { display: flex; gap: 8px; align-items: center; border: 1px solid var(--line-strong); border-radius: 10px; padding: 8px 10px; font-size: 14px; font-weight: 600; cursor: pointer; min-height: 44px; }
+.seg label .sub { font-size: 12px; }
+.seg label.is-on { border-color: var(--accent); background: var(--accent-soft); }
+.seg input { accent-color: var(--accent-fill); margin: 0; }
+.h-row { border: 1px solid var(--line); border-radius: 12px; padding: 10px; margin: 0 0 10px; display: grid; gap: 8px; }
+.h-top { display: flex; gap: 8px; align-items: end; }
+.h-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+.mini { display: grid; gap: 3px; min-width: 0; }
+.mini > span { font-size: 12px; font-weight: 600; color: var(--muted); }
+.mini.grow { flex: 1; }
+.h-info { margin: 0; font-size: 13px; color: var(--muted); }
+.h-info:empty { display: none; }
+.h-row .err { margin: 0; }
+
+/* ---------- oś czasu planu ---------- */
+.tl { display: flex; height: 34px; border-radius: 8px; overflow: hidden; margin: 2px 0 4px; }
+.tl-seg { display: flex; align-items: center; justify-content: center; min-width: 3px; color: var(--on-seg); font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; box-shadow: inset -2px 0 0 var(--surface); }
+.tl-seg:last-child { box-shadow: none; }
+.tl-axis { position: relative; height: 18px; font-size: 12px; color: var(--muted); margin: 0 0 10px; font-variant-numeric: tabular-nums; }
+.tl-axis span { position: absolute; top: 0; transform: translateX(-50%); }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.t-edo { background: var(--t-edo); } .t-tos { background: var(--t-tos); } .t-coi { background: var(--t-coi); }
+.t-dor { background: var(--t-dor); } .t-ror { background: var(--t-ror); } .t-ros { background: var(--t-ros); }
+.t-rod { background: var(--t-rod); } .t-cash { background: var(--bar-grey); } .t-end { background: var(--bal); }
+
 </style>
 </head>
 <body>
@@ -445,6 +477,18 @@ tr.end td { background: var(--surface-2); font-weight: 650; }
       </div>
     </section>
 
+    <!-- ============ POSIADANE OBLIGACJE ============ -->
+    <details class="panel" id="holdings">
+      <summary><span class="h2like">Masz już obligacje?</span> <span class="sub">opcjonalnie</span></summary>
+      <div class="seg" role="radiogroup" aria-label="Jak wpisać obligacje">
+        <label><input type="radio" name="hold-mode" value="types" data-k="hold.mode"> Sumy według typu</label>
+        <label><input type="radio" name="hold-mode" value="series" data-k="hold.mode"> Serie z konta</label>
+      </div>
+      <p class="hint" id="hold-hint"></p>
+      <div id="hold-list"></div>
+      <button type="button" class="btn-ghost" data-action="hold-add">+ dodaj typ</button>
+    </details>
+
     <!-- ============ EKSPERT: WPŁATY JEDNORAZOWE ============ -->
     <section class="panel x-only" aria-labelledby="h-ot">
       <h2 id="h-ot">Wpłaty jednorazowe</h2>
@@ -492,6 +536,12 @@ tr.end td { background: var(--surface-2); font-weight: 650; }
         <label for="f-tax">Podatek Belki <button type="button" class="tip" data-tip="belka" aria-label="Wyjaśnienie: podatek Belki">?</button></label>
         <div class="unit"><input id="f-tax" type="text" inputmode="decimal" data-k="tax"><span>%</span></div>
         <p class="err" data-err="tax"></p>
+      </div>
+
+      <div class="field">
+        <label for="f-tol">Prostszy plan, jeśli kosztuje najwyżej <button type="button" class="tip" data-tip="prosty" aria-label="Wyjaśnienie: plan uproszczony">?</button> <span class="sub">0 = zawsze plan optymalny</span></label>
+        <div class="unit"><input id="f-tol" type="text" inputmode="decimal" data-k="planTol"><span>% wyniku</span></div>
+        <p class="err" data-err="planTol"></p>
       </div>
 
       <div class="family">
@@ -542,6 +592,11 @@ tr.end td { background: var(--surface-2); font-weight: 650; }
       <section class="panel" aria-labelledby="h-after">
         <h2 id="h-after">Co po dopłatach?</h2>
         <div id="r-after"></div>
+      </section>
+
+      <section class="panel" id="r-hold-panel" aria-labelledby="h-hold" hidden>
+        <h2 id="h-hold">Obligacje, które już masz</h2>
+        <div id="r-hold"></div>
       </section>
 
       <section class="panel" aria-labelledby="h-plan">
@@ -646,7 +701,11 @@ var BK2 = (function () {
       inflation: 0.025,
       inflationByYear: {},         // {2027: 0.03}
       tax: 0.19,
-      family: { enabled: false, monthly: 0 }   // monthly = 0 → bez limitu
+      family: { enabled: false, monthly: 0 },  // monthly = 0 → bez limitu
+      // posiadane obligacje: mode 'types' (C, sumy według typu) albo 'series' (B, serie z konta)
+      // types: [{type, nominal, value, before}], series: [{code, units, value, rate}]
+      holdings: { mode: 'types', types: [], series: [] },
+      planTolerance: 0.01         // prostszy plan wygrywa, jeśli kosztuje najwyżej 1% wyniku
     };
   }
 
@@ -819,8 +878,141 @@ var BK2 = (function () {
     return { map: map, ignored: ignored, sum: sum };
   }
 
+
+  /* ---------- obligacje, które już masz ---------- */
+  // Kod serii: symbol + miesiąc i rok wykupu, np. EDO0434 = EDO z wykupem w 04.2034 (kupione 04.2024).
+  function parseSeries(code) {
+    var m = /^\s*([A-Za-z]{3})\s*(\d{2})(\d{2})\s*$/.exec(code || '');
+    if (!m) return null;
+    var type = m[1].toUpperCase(), mon = +m[2];
+    if (!INFO[type] || mon < 1 || mon > 12) return null;
+    var matAbs = absOf(2000 + (+m[3]), mon);
+    return { type: type, matAbs: matAbs, startAbs: matAbs - INFO[type].months };
+  }
+
+  function zeros(n) { var a = []; for (var i = 0; i <= n; i++) a.push(0); return a; }
+
+  // Parametry konkretnej serii: marża (dla TOS – stałe oprocentowanie) może różnić się od dzisiejszej oferty.
+  function seriesParams(P, type, rate) {
+    var base = P.bonds[type], cfg = { on: true, first: base.first, margin: base.margin, fee: base.fee };
+    if (rate !== null && rate !== undefined && isFinite(rate)) {
+      if (INFO[type].index === 'fixed') cfg.first = rate; else cfg.margin = rate;
+    }
+    var Ps = {};
+    for (var k in P) Ps[k] = P[k];
+    Ps.bonds = {};
+    for (var b in P.bonds) Ps.bonds[b] = P.bonds[b];
+    Ps.bonds[type] = cfg;
+    return { Ps: Ps, cfg: cfg };
+  }
+
+  // Wersja B: jedna seria. Wynik w miesiącach t = 0…H od dziś:
+  // flows[t] – gotówka netto (kupony, wykup, sprzedaż na koniec dopłat), liq[t] – ile dałaby sprzedaż w miesiącu t.
+  function runSeries(P, L, s, ps) {
+    var type = ps.type, info = INFO[type], H = T_SUB - L.m0, n = s.units, N = 100 * n;
+    var sp = seriesParams(P, type, s.rate), cfg = sp.cfg, Ps = sp.Ps;
+    var per = info.kind === 'monthly' ? 1 : 12;
+    var e0 = P.simAbs - ps.startAbs, remain = info.months - e0;
+    var exitT = Math.min(remain, H), matured = remain <= H;
+    var flows = zeros(H), liq = zeros(H), valueNow, t;
+    function r(k) { return periodRate(type, k, ps.startAbs, Ps); }
+    var kc = Math.floor(e0 / per) + 1, mIn = e0 - per * (kc - 1);
+    if (info.kind === 'cap') {
+      var base;
+      if (s.value !== null && s.value !== undefined) base = s.value / (1 + r(kc) * mIn / 12);
+      else { base = N; for (var k = 1; k < kc; k++) base *= 1 + r(k); }
+      var valueAt = function (e) {
+        var v = base, full = Math.floor(e / 12);
+        for (var kk = kc; kk <= full; kk++) v *= 1 + r(kk);
+        var rem = e - 12 * full;
+        if (rem > 0) v *= 1 + r(full + 1) * rem / 12;
+        return v;
+      };
+      var netAt = function (e, isMat) {
+        var v = valueAt(e), it = v - N, fee = isMat ? 0 : Math.min(cfg.fee * n, Math.max(0, it));
+        return v - fee - Math.max(0, it - fee) * P.tax;
+      };
+      valueNow = valueAt(e0);
+      for (t = 0; t < exitT; t++) liq[t] = netAt(e0 + t, false);
+      flows[exitT] += netAt(e0 + exitT, matured);
+    } else {
+      var rcur = r(kc);
+      if (s.value !== null && s.value !== undefined && mIn > 0) rcur = Math.min(0.25, Math.max(0, (s.value - N) / (N * mIn / 12)));
+      var rk = function (k) { return k === kc ? rcur : r(k); };
+      for (var c = kc; per * c - e0 <= exitT; c++) {
+        t = per * c - e0;
+        if (t >= 1) flows[t] += N * rk(c) * per / 12 * (1 - P.tax);
+      }
+      var saleAt = function (e) {
+        var k2 = Math.floor(e / per) + 1, acc = N * rk(k2) * (e - per * (k2 - 1)) / 12;
+        var fee = k2 === 1 ? Math.min(cfg.fee * n, acc) : cfg.fee * n;
+        return N + acc - fee - Math.max(0, acc - fee) * P.tax;
+      };
+      if (matured) flows[exitT] += N; else flows[exitT] += saleAt(e0 + exitT);
+      for (t = 0; t < exitT; t++) liq[t] = saleAt(e0 + t);
+      valueNow = s.value !== null && s.value !== undefined ? s.value : N + N * rcur * mIn / 12;
+    }
+    return { flows: flows, liq: liq, exitT: exitT, matured: matured, valueNow: valueNow };
+  }
+
+  // Wersja C (uproszczona): suma jednego typu. Wartość rośnie co miesiąc według dzisiejszych założeń
+  // (inflacja + marża, NBP + marża, TOS – stałe). Wykup przed końcem dopłat = w połowie pozostałego czasu.
+  function runTypeSum(P, L, row) {
+    var type = row.type, info = INFO[type], cfg = P.bonds[type], H = T_SUB - L.m0;
+    var n = Math.max(1, Math.round(row.nominal / 100)), N = 100 * n;
+    var V = row.value !== null && row.value !== undefined ? row.value : N;
+    var exitT = row.before ? Math.max(1, Math.round(H / 2)) : H, matured = !!row.before;
+    var flows = zeros(H), liq = zeros(H), v = V, t;
+    function g(abs) {
+      if (info.index === 'fixed') return cfg.first;
+      if (info.index === 'nbp') return Math.max(0, P.nbp + cfg.margin);
+      return Math.max(0, inflationFor(P, yearOf(abs))) + cfg.margin;
+    }
+    function netOf(val, isMat) {
+      var it = val - N, fee = isMat ? 0 : (info.kind === 'cap' ? Math.min(cfg.fee * n, Math.max(0, it)) : cfg.fee * n);
+      return val - fee - Math.max(0, it - fee) * P.tax;
+    }
+    for (t = 0; t <= exitT; t++) {
+      if (t > 0) v *= Math.pow(1 + g(P.simAbs + t), 1 / 12);
+      if (t < exitT) liq[t] = netOf(v, false);
+      else flows[t] += netOf(v, matured);
+    }
+    return { flows: flows, liq: liq, exitT: exitT, matured: matured, valueNow: V };
+  }
+
+  function buildHoldings(P, L) {
+    var H = T_SUB - L.m0, out = { flows: zeros(H), liq: zeros(H), liq0: 0, cash: 0, valueNow: 0, lots: [], ignored: [] };
+    var hd = P.holdings;
+    if (!hd || L.blocked) return out;
+    function add(run, lot) {
+      for (var t = 0; t <= H; t++) { out.flows[t] += run.flows[t]; out.liq[t] += run.liq[t]; }
+      var cash = run.flows.reduce(function (a, b) { return a + b; }, 0);
+      lot.valueNow = run.valueNow; lot.liq0 = run.liq[0]; lot.cash = cash;
+      lot.exitAbs = P.simAbs + run.exitT; lot.matured = run.matured;
+      out.cash += cash; out.valueNow += run.valueNow;
+      out.lots.push(lot);
+    }
+    if (hd.mode === 'series') {
+      (hd.series || []).forEach(function (s) {
+        var ps = parseSeries(s.code), label = String(s.code || '').toUpperCase().trim();
+        if (!ps) { out.ignored.push({ label: label, reason: 'code' }); return; }
+        if (!(s.units >= 1)) { out.ignored.push({ label: label, reason: 'units' }); return; }
+        if (ps.startAbs > P.simAbs) { out.ignored.push({ label: label, reason: 'future' }); return; }
+        if (ps.matAbs <= P.simAbs) { out.ignored.push({ label: label, reason: 'matured' }); return; }
+        add(runSeries(P, L, s, ps), { label: label, type: ps.type, units: s.units, startAbs: ps.startAbs, matAbs: ps.matAbs });
+      });
+    } else if (hd.mode === 'types') {
+      (hd.types || []).forEach(function (row) {
+        if (!INFO[row.type] || !(row.nominal >= 100)) return;
+        add(runTypeSum(P, L, row), { label: row.type, type: row.type, units: Math.round(row.nominal / 100), before: !!row.before });
+      });
+    }
+    out.liq0 = out.liq[0];
+    return out;
+  }
+
   /* ---------- symulacja miesięczna (całe sztuki) ---------- */
-  function simulate(P, X, opt, light) {
+  function simulate(P, X, opt, light, hold) {
     var L = loan(P), one = oneTimeMap(P, L).map;
     var rows = [], lots = [], pool = 0, deposits = 0, famSpent = 0, cache = {};
     var famLimited = !!(P.family && P.family.enabled && P.family.monthly > 0);
@@ -839,6 +1031,7 @@ var BK2 = (function () {
         }
         if (j === run.T) { income += run.redemption * lot.units; lot.done = true; }
       }
+      if (hold) income += hold.flows[m - L.m0];
       pool += income;
       // zakupy
       var buys = [], cost = 0;
@@ -870,6 +1063,7 @@ var BK2 = (function () {
           if (!(key in cache)) cache[key] = bondRun(lt.type, lt.abs, jj, P).redemption;
           liq += cache[key] * lt.units;
         }
+        if (hold) liq += hold.liq[m - L.m0];
         row.bonds = liq;
         row.portfolio = pool + liq;
       }
@@ -878,10 +1072,78 @@ var BK2 = (function () {
     return { rows: rows, deposits: deposits, gross: pool, net: pool * (1 - P.commission), famSpent: famSpent };
   }
 
+
+  /* ---------- prosty plan: schodki zamiast przeplatania ---------- */
+  // 1) Schodki: idąc od końca dopłat wstecz (h rośnie), wolno wybrać tylko obligację nie krótszą niż poprzednia.
+  function ladderChoice(P, endAbs) {
+    var types = enabledTypes(P).sort(function (a, b) { return INFO[a].months - INFO[b].months; });
+    var W = [1], ch = ['CASH'], minM = 0;
+    for (var h = 1; h <= T_SUB; h++) {
+      var best = null;
+      for (var i = 0; i < types.length; i++) {
+        if (INFO[types[i]].months < minM) continue;
+        var run = bondRun(types[i], endAbs - h, h, P), f = 0;
+        for (var c = 0; c < run.coupons.length; c++) f += run.coupons[c].amount * W[h - run.coupons[c].j];
+        f = (f + run.redemption * W[h - run.T]) / 100;
+        if (!best || f > best.f) best = { t: types[i], f: f };
+      }
+      if (best && best.f > 1 + EPS) { W[h] = best.f; ch[h] = best.t; minM = INFO[best.t].months; }
+      else { W[h] = 1; ch[h] = 'CASH'; }
+    }
+    return ch;
+  }
+  function planFromChoice(ch, opt) {
+    var ranking = ch.map(function (c, h) {
+      if (c === 'CASH') return [];
+      // obligacje rodzinne mają limit – resztę kupujemy wg rankingu bez nich
+      if (INFO[c].family) return [c].concat((opt.ranking[h] || []).filter(function (t) { return t !== c && !INFO[t].family; }));
+      return [c];
+    });
+    return { choice: ch, ranking: ranking };
+  }
+  function segmentsOf(ch, H) {
+    var out = [];
+    for (var h = 1; h <= H; h++) {
+      var last = out[out.length - 1];
+      if (last && last.c === ch[h]) last.to = h; else out.push({ c: ch[h], from: h, to: h });
+    }
+    return out;
+  }
+  // 2) Upraszczanie: scalamy etap z sąsiednim, dopóki wynik nie spadnie o więcej niż tol (np. 0,01).
+  function simplePlan(P, L, opt, X, hold, tol) {
+    var H = T_SUB - L.m0 - 1;
+    var optNet = simulate(P, X, opt, true, hold).net;
+    if (!(tol > 0) || H < 2) return { plan: opt, net: optNet, optNet: optNet, simple: false };
+    var floor = optNet - Math.abs(optNet) * tol;
+    var ch = ladderChoice(P, L.endAbs), h;
+    for (h = H + 1; h <= T_SUB; h++) ch[h] = ch[H];
+    function score(c) { return simulate(P, X, planFromChoice(c, opt), true, hold).net; }
+    var cur = score(ch);
+    for (;;) {
+      var segs = segmentsOf(ch, H), cand = null;
+      for (var i = 0; i < segs.length; i++) {
+        if (segs[i].c === 'CASH') continue;
+        for (var d = -1; d <= 1; d += 2) {
+          var nb = segs[i + d];
+          if (!nb || nb.c === 'CASH') continue;
+          var c2 = ch.slice();
+          for (h = segs[i].from; h <= segs[i].to; h++) c2[h] = nb.c;
+          for (h = H + 1; h <= T_SUB; h++) c2[h] = c2[H];
+          var sc = score(c2);
+          if (sc >= floor && (!cand || sc > cand.sc)) cand = { sc: sc, ch: c2 };
+        }
+      }
+      if (!cand) break;
+      ch = cand.ch; cur = cand.sc;
+    }
+    if (cur < floor) return { plan: opt, net: optNet, optNet: optNet, simple: false };
+    return { plan: planFromChoice(ch, opt), net: cur, optNet: optNet, simple: true };
+  }
+
   /* ---------- „Ile muszę odkładać?” ---------- */
-  function requiredX(P, opt) {
+  function requiredX(P, opt, hold) {
     var L = loan(P), target = L.S120;
-    function netAt(X) { return simulate(P, X, opt, true).net; }
+    function netAt(X) { return simulate(P, X, opt, true, hold).net; }
     var n0 = netAt(0);
     if (n0 >= target - 1e-6) return { X: 0, net: n0, prevNet: null };
     var hi = Math.max(1, Math.ceil(target / Math.max(0.01, 1 - P.commission) / 100));
@@ -898,7 +1160,7 @@ var BK2 = (function () {
   // Ten sam miesięczny wydatek: rata z harmonogramu bez nadpłat + X (+ wpłaty jednorazowe).
   // Bank po nadpłacie obniża ratę, więc różnicę też nadpłacamy.
   // Kwoty z miesięcy 1–36 zbieramy (0%) i nadpłacamy w miesiącu 37.
-  function variantC(P, X) {
+  function variantC(P, X, hold) {
     var L = loan(P), one = oneTimeMap(P, L).map, q = P.r2 / 12;
     var bal = L.Sm0, collected = 0, leftover = 0, early = [], payAbs = null;
     for (var m = L.m0 + 1; m <= T_SUB; m++) {
@@ -908,7 +1170,7 @@ var BK2 = (function () {
       var interest = bal * q, capital = Math.min(bal, bal / rem);
       var cur = bal > 0 ? capital + interest : 0;
       bal -= capital;
-      var extra = X + (one[abs] || 0) + (sched - cur);
+      var extra = X + (one[abs] || 0) + (sched - cur) + (hold ? hold.flows[m - L.m0] : 0);
       if (m <= 36) {
         if (extra > 0.005) early.push(abs);
         collected += extra;
@@ -975,19 +1237,25 @@ var BK2 = (function () {
     var L = loan(P);
     if (L.blocked) return { blocked: L.blocked, loan: L };
     var opt = optimize(P, L.endAbs, T_SUB);
-    var need = null, X = P.X;
-    if (P.question === 'need') { need = requiredX(P, opt); X = need.X; }
-    var sim = simulate(P, X, opt, false);
-    var C = variantC(P, X);
+    var hold = buildHoldings(P, L);
+    var need = null, X = P.X, tol = P.planTolerance === undefined ? 0.01 : P.planTolerance;
+    // prosty plan dobieramy do kwoty, jaką odkładasz; w trybie „ile muszę” – do kwoty wyliczonej z planem optymalnym
+    var plan = simplePlan(P, L, opt, P.question === 'need' ? requiredX(P, opt, hold).X : X, hold, tol).plan;
+    if (P.question === 'need') { need = requiredX(P, plan, hold); X = need.X; }
+    var sim = simulate(P, X, plan, false, hold);
+    var optNet = simulate(P, X, opt, true, hold).net;
+    var C = variantC(P, X, hold);
     var one = oneTimeMap(P, L);
     var R = L.S120 - sim.net;
     var months = T_SUB - L.m0;
-    var sockNet = sim.deposits * (1 - P.commission);
+    var sockNet = (sim.deposits + hold.cash) * (1 - P.commission);
 
-    var irrY = irr(sim.rows.map(function (r) { return { m: r.m, amount: r.deposit }; }), sim.gross);
+    var deps = sim.rows.map(function (r) { return { m: r.m, amount: r.deposit }; });
+    if (hold.liq0 > 0) deps.unshift({ m: L.m0, amount: hold.liq0 });
+    var irrY = irr(deps, sim.gross);
 
     // skarpeta: ile trzeba odkładać, żeby spłacić całość bez obligacji
-    var sockNeed = L.S120 / Math.max(0.01, 1 - P.commission) - one.sum;
+    var sockNeed = L.S120 / Math.max(0.01, 1 - P.commission) - one.sum - hold.cash;
     var sockX = sockNeed <= 0 ? 0 : Math.ceil(sockNeed / months / 100 - 1e-9) * 100;
 
     var feelings = {
@@ -1007,9 +1275,10 @@ var BK2 = (function () {
     if (P.question === 'pay' && X % 100 !== 0) warnings.push({ code: 'notMultiple', X: X, buy: Math.floor(X / 100) * 100, rest: X % 100 });
     var types = enabledTypes(P);
     if (!types.length) warnings.push({ code: 'noBonds' });
-    else if (months - 1 < 1 || opt.choice[months - 1] === 'CASH') warnings.push({ code: 'shortHorizon', months: months });
+    else if (months - 1 < 1 || plan.choice[months - 1] === 'CASH') warnings.push({ code: 'shortHorizon', months: months });
     if (P.family && P.family.enabled && !(P.family.monthly > 0) && (P.bonds.ROS.on || P.bonds.ROD.on)) warnings.push({ code: 'familyNoLimit' });
     if (one.ignored.length) warnings.push({ code: 'oneTimeIgnored', items: one.ignored });
+    if (hold.ignored.length) warnings.push({ code: 'holdIgnored', items: hold.ignored });
 
     return {
       blocked: null,
@@ -1020,9 +1289,12 @@ var BK2 = (function () {
       need: need,
       sim: sim,
       plan: planSegments(sim.rows),
+      planOpt: plan,
+      planInfo: { simple: plan !== opt, optNet: optNet, loss: optNet - sim.net, tol: tol },
       bonds: { net: sim.net, gross: sim.gross, debt: Math.max(0, R), surplus: Math.max(0, -R), R: R },
       C: { balance: C.balance, leftover: C.leftover, early36: C.early36, payAbs: C.payAbs },
-      D: { sock: sim.deposits, sockNet: sockNet, debt: Math.max(0, L.S120 - sockNet), surplus: Math.max(0, sockNet - L.S120), needX: sockX },
+      holdings: hold,
+      D: { sock: sim.deposits + hold.cash, sockNet: sockNet, debt: Math.max(0, L.S120 - sockNet), surplus: Math.max(0, sockNet - L.S120), needX: sockX },
       irr: irrY,
       after: afterSubsidy(L, P, R),
       rataNow: L.rata(L.m0 + 1),
@@ -1065,6 +1337,8 @@ var BK2 = (function () {
     defaults: defaults, clone: clone, absOf: absOf, yearOf: yearOf, monthOf: monthOf, inflationFor: inflationFor,
     periodRate: periodRate, bondRun: bondRun, enabledTypes: enabledTypes, optimize: optimize,
     loan: loan, annuity: annuity, amortize: amortize, afterSubsidy: afterSubsidy, oneTimeMap: oneTimeMap,
+    parseSeries: parseSeries, runSeries: runSeries, runTypeSum: runTypeSum, buildHoldings: buildHoldings,
+    ladderChoice: ladderChoice, simplePlan: simplePlan,
     simulate: simulate, requiredX: requiredX, variantC: variantC, irr: irr,
     sockInflationLoss: sockInflationLoss, planSegments: planSegments, compute: compute,
     fmtNum: fmtNum, fmtZl: fmtZl, fmtPct: fmtPct, fmtMonth: fmtMonth, fmtMonthLoc: fmtMonthLoc,
@@ -1102,6 +1376,8 @@ var BK2 = (function () {
     warC: 'Wydajesz co miesiąc tyle samo co przy obligacjach (rata + odkładana kwota), ale nadwyżkę od razu nadpłacasz. Bank po nadpłacie obniża ratę, więc różnicę też nadpłacamy. Kwoty z pierwszych 36 miesięcy kredytu nadpłacamy dopiero w 37. miesiącu.',
     warD: 'Te same pieniądze leżą w gotówce na 0% i w dniu końca dopłat idą na jednorazową nadpłatę.',
     plan: 'Co miesiąc kupujesz obligacje za całą dostępną gotówkę (wpłata, odsetki, pieniądze z wykupu), w pełnych setkach. Każdą trzymasz do wykupu albo do końca dopłat – wtedy sprzedajesz wszystko i nadpłacasz kredyt.',
+    seria: 'Kod serii to symbol i miesiąc wykupu, np. EDO0434 = EDO z wykupem w kwietniu 2034. Znajdziesz go przy każdej pozycji na koncie obligacji.',
+    prosty: 'Kupujesz po kolei, bez przeplatania typów. Upraszczamy plan, dopóki daje najwyżej o 1% mniej niż plan optymalny (próg zmienisz w trybie ekspert).',
     portfel: 'Ile dostałbyś na rękę, gdybyś w danym miesiącu sprzedał wszystkie obligacje: po opłatach za wcześniejszy wykup i po podatku Belki, razem z gotówką czekającą na zakup.'
   };
   var QUIPS = [
@@ -1137,6 +1413,7 @@ var BK2 = (function () {
       X: '1000', oneTime: [],
       bonds: bonds, nbp: '3,75', infl: '2,5', inflByYear: {}, tax: '19',
       family: false, family800: '',
+      hold: { mode: 'types', types: [], series: [] }, planTol: '1',
       feelings: false
     };
   }
@@ -1232,6 +1509,31 @@ var BK2 = (function () {
     P.commission = com / 100; P.question = s.question; P.X = X; P.oneTime = oneTime;
     P.bonds = bonds; P.nbp = nbp / 100; P.inflation = infl / 100; P.inflationByYear = byYear; P.tax = tax / 100;
     P.family = { enabled: !!s.family, monthly: isFinite(fam) ? fam : 0 };
+    var hs = s.hold || { mode: 'types', types: [], series: [] };
+    var hd = { mode: hs.mode === 'series' ? 'series' : 'types', types: [], series: [] };
+    if (hd.mode === 'types') {
+      hs.types.forEach(function (r, i) {
+        if (isBlank(r.nominal) && isBlank(r.value)) return;
+        var nom = num(r.nominal), val = isBlank(r.value) ? null : num(r.value), key = 'hold.types.' + i;
+        if (!(nom >= 100 && nom <= 1e8)) { e[key] = 'Wpisz nominał: liczba obligacji × 100 zł, np. 20 000 zł.'; return; }
+        if (val !== null && !(val > 0 && val <= 1e8)) { e[key] = 'Wartość dziś musi być większa od zera (albo zostaw puste).'; return; }
+        hd.types.push({ type: r.type, nominal: nom, value: val, before: r.when === 'before' });
+      });
+    } else {
+      hs.series.forEach(function (r, i) {
+        if (isBlank(r.code) && isBlank(r.units) && isBlank(r.value)) return;
+        var ps = E.parseSeries(r.code), u = num(r.units), key = 'hold.series.' + i;
+        var val = isBlank(r.value) ? null : num(r.value), rate = isBlank(r.rate) ? null : num(r.rate);
+        if (!ps) { e[key] = 'Wpisz kod serii z konta, np. EDO0434.'; return; }
+        if (!(u >= 1 && u % 1 === 0 && u <= 1e6)) { e[key] = 'Wpisz liczbę obligacji (sztuk).'; return; }
+        if (val !== null && !(val > 0 && val <= 1e8)) { e[key] = 'Wartość dziś musi być większa od zera (albo zostaw puste).'; return; }
+        if (rate !== null && !(rate >= 0 && rate <= 20)) { e[key] = 'Marża od 0 do 20% (albo zostaw puste).'; return; }
+        hd.series.push({ code: r.code, units: u, value: val, rate: rate === null ? null : rate / 100 });
+      });
+    }
+    P.holdings = hd;
+    var tol = rng('planTol', num(s.planTol), 0, 10, 'Wpisz od 0 do 10%.');
+    P.planTolerance = isFinite(tol) ? tol / 100 : 0.01;
     return { errors: e, P: P };
   }
 
@@ -1273,6 +1575,59 @@ var BK2 = (function () {
         '<p class="err bg-err" data-err="bonds.' + b + '"></p>';
     });
     $('#bond-grid').innerHTML = h;
+  }
+
+  var HOLD_TYPES = ['EDO', 'COI', 'TOS', 'DOR', 'ROR', 'ROS', 'ROD'];
+  function mini(label, control, cls) { return '<label class="mini' + (cls ? ' ' + cls : '') + '"><span>' + label + '</span>' + control + '</label>'; }
+  function renderHoldings() {
+    var hm = state.hold.mode === 'series' ? 'series' : 'types', box = $('#hold-list'), list = state.hold[hm], h = '';
+    $$('.seg label').forEach(function (l) { l.classList.toggle('is-on', $('input', l).value === hm); });
+    $('#hold-hint').innerHTML = hm === 'types'
+      ? 'Zsumuj obligacje tego samego typu. Nominał to liczba obligacji × 100 zł, wartość dziś (z odsetkami) znajdziesz na koncie obligacji.'
+      : 'Przepisz serie z konta obligacji ' + tip('seria', 'kod serii') + '. To dokładniejsza wersja. Wartość dziś i marża są opcjonalne – bez nich szacujemy według dzisiejszej oferty.';
+    $('[data-action=hold-add]').textContent = hm === 'types' ? '+ dodaj typ' : '+ dodaj serię';
+    list.forEach(function (r, i) {
+      var k = 'hold.' + hm + '.' + i + '.', del = '<button type="button" class="icon-btn" data-action="hold-del" data-i="' + i + '" aria-label="Usuń pozycję ' + (i + 1) + '">×</button>';
+      if (hm === 'types') {
+        h += '<div class="h-row"><div class="h-top">' +
+          mini('Typ', '<select data-k="' + k + 'type">' + HOLD_TYPES.map(function (t) { return '<option>' + t + '</option>'; }).join('') + '</select>', 'grow') + del + '</div>' +
+          '<div class="h-grid">' +
+          mini('Nominał', '<div class="unit"><input type="number" inputmode="numeric" min="0" step="100" placeholder="np. 20000" data-k="' + k + 'nominal"><span>zł</span></div>') +
+          mini('Wartość dziś', '<div class="unit"><input type="number" inputmode="decimal" min="0" step="0.01" placeholder="opcj." data-k="' + k + 'value"><span>zł</span></div>') +
+          '</div>' +
+          mini('Wykup', '<select data-k="' + k + 'when"><option value="after">po końcu dopłat – sprzedaż przed terminem</option><option value="before">przed końcem dopłat</option></select>') +
+          '<p class="err" data-err="hold.types.' + i + '"></p></div>';
+      } else {
+        h += '<div class="h-row"><div class="h-top">' +
+          mini('Kod serii', '<input type="text" maxlength="9" autocapitalize="characters" spellcheck="false" placeholder="np. EDO0434" data-k="' + k + 'code">', 'grow') + del + '</div>' +
+          '<div class="h-grid">' +
+          mini('Sztuk', '<input type="number" inputmode="numeric" min="1" step="1" placeholder="np. 150" data-k="' + k + 'units">') +
+          mini('Wartość dziś', '<div class="unit"><input type="number" inputmode="decimal" min="0" step="0.01" placeholder="opcj." data-k="' + k + 'value"><span>zł</span></div>') +
+          mini('<span data-rate-label="' + i + '">Marża</span>', '<div class="unit"><input type="text" inputmode="decimal" data-k="' + k + 'rate"><span>%</span></div>') +
+          '</div><p class="h-info" data-info="' + i + '"></p>' +
+          '<p class="err" data-err="hold.series.' + i + '"></p></div>';
+      }
+    });
+    box.innerHTML = h || '<p class="hint">Nic jeszcze nie dodałeś.</p>';
+    syncInputs(box);
+    updateSeriesInfo();
+  }
+  function updateSeriesInfo() {
+    if (state.hold.mode !== 'series') return;
+    var P = validate(state).P, end = P.launchAbs + E.T_SUB;
+    state.hold.series.forEach(function (r, i) {
+      var el = $('[data-info="' + i + '"]'), lab = $('[data-rate-label="' + i + '"]'), inp = $('[data-k="hold.series.' + i + '.rate"]');
+      if (!el) return;
+      var ps = E.parseSeries(r.code), txt = '';
+      if (ps) {
+        var fixed = E.INFO[ps.type].index === 'fixed', cfg = P.bonds[ps.type];
+        lab.textContent = fixed ? 'Oprocentowanie' : 'Marża';
+        inp.placeholder = dec((fixed ? cfg.first : cfg.margin) * 100, 2);
+        txt = ps.type + ' · kupione ' + mm(ps.startAbs) + ' · wykup ' + mm(ps.matAbs) + ' – ' +
+          (ps.matAbs <= P.simAbs ? 'już wykupiona, pomijamy' : ps.startAbs > P.simAbs ? 'data zakupu w przyszłości?' : ps.matAbs <= end ? 'przed końcem dopłat' : 'po końcu dopłat, sprzedaż w ' + mm(end));
+      }
+      el.textContent = txt;
+    });
   }
 
   function renderOneTime() {
@@ -1383,7 +1738,7 @@ var BK2 = (function () {
     last = { res: res, P: v.P };
     render();
   }
-  function isExpertKey(k) { return !/^(K|launch|term|X)$/.test(k); }
+  function isExpertKey(k) { return !/^(K|launch|term|X|hold\..*)$/.test(k); }
 
   function showStatus(title, text) {
     last = null;
@@ -1402,6 +1757,7 @@ var BK2 = (function () {
     renderCompare(res, P);
     renderChart(res);
     renderAfter(res, P);
+    renderHoldResult(res);
     renderPlan(res);
     if ($('#d-table').open) renderTable(res);
     renderWhy(res, P);
@@ -1413,7 +1769,9 @@ var BK2 = (function () {
   function renderAnswer(res, P) {
     var L = res.loan, end = '<b>' + loc(L.endAbs) + '</b>', S = L.S120, feel = state.feelings;
     var need = P.question === 'need', el = $('#r-answer'), h = '', meta = [];
-    var oneTxt = res.oneTimeSum > 0 ? ' (plus wpłaty jednorazowe ' + zl(res.oneTimeSum) + ')' : '';
+    var hl = res.holdings && res.holdings.lots.length ? res.holdings : null;
+    var oneTxt = (res.oneTimeSum > 0 ? ' (plus wpłaty jednorazowe ' + zl(res.oneTimeSum) + ')' : '') + (hl ? ' i mając już obligacje' : '');
+    var gain = res.bonds.net - res.sim.deposits - (hl ? hl.liq0 : 0);
     el.className = 'answer' + (feel ? ' is-sock' : '');
     if (feel) {
       h += '<p class="kicker">Wariant „skarpeta” – pieniądze leżą w gotówce na 0%</p>';
@@ -1431,21 +1789,24 @@ var BK2 = (function () {
       }
     } else if (need) {
       if (res.X === 0) {
-        h += '<p>Twoje jednorazowe wpłaty wystarczą, żeby w ' + end + ' spłacić cały kredyt 🎉</p><span class="big">' + zl(S) + '</span><p>Nie musisz odkładać co miesiąc.</p>';
+        h += '<p>' + (hl ? 'Obligacje, które masz' : 'Twoje jednorazowe wpłaty') + (hl && res.oneTimeSum > 0 ? ' i wpłaty jednorazowe' : '') + ' wystarczą, żeby w ' + end + ' spłacić cały kredyt 🎉</p><span class="big">' + zl(S) + '</span><p>Nie musisz odkładać co miesiąc.</p>';
       } else {
-        h += '<p>Żeby spłacić cały kredyt w ' + end + ', odkładaj</p><span class="big">' + zl(res.X) + '</span><p>miesięcznie' + oneTxt + '.</p>';
+        h += '<p>Żeby spłacić cały kredyt w ' + end + ', odkładaj</p><span class="big">' + zl(res.X) + '</span><p>miesięcznie' + (res.oneTimeSum > 0 ? ' (plus wpłaty jednorazowe ' + zl(res.oneTimeSum) + ')' : '') + (hl ? ', wliczając obligacje, które już masz' : '') + '.</p>';
       }
       meta.push(['Wpłacisz łącznie', zl(res.sim.deposits)]);
+      if (hl) meta.push(['Masz już (netto dziś)', zl(hl.liq0)]);
       meta.push(['W ' + mon(L.endAbs) + ' będziesz mieć', zl(res.bonds.net)]);
       meta.push(['Nadwyżka do ręki', zl(res.bonds.surplus)]);
     } else if (res.bonds.debt <= 0) {
       h += '<p>Odkładając <b>' + zl(res.X) + '</b> miesięcznie' + oneTxt + ', w ' + end + ' spłacisz cały kredyt 🎉</p><span class="big">' + zl(S) + '</span><p>i zostanie Ci ' + zl(res.bonds.surplus) + '.</p>';
       meta.push(['Wpłacisz łącznie', zl(res.sim.deposits)]);
-      meta.push(['Obligacje dorobią na czysto', zl(res.bonds.net - res.sim.deposits)]);
+      if (hl) meta.push(['Masz już (netto dziś)', zl(hl.liq0)]);
+      meta.push(['Obligacje dorobią na czysto', zl(gain)]);
     } else {
       h += '<p>Odkładając <b>' + zl(res.X) + '</b> miesięcznie' + oneTxt + ', w ' + end + ' spłacisz</p><span class="big">' + zl(res.bonds.net) + '</span><p>z <b>' + zl(S) + '</b> długu.</p>';
       meta.push(['Wpłacisz łącznie', zl(res.sim.deposits)]);
-      meta.push(['Obligacje dorobią na czysto', zl(res.bonds.net - res.sim.deposits)]);
+      if (hl) meta.push(['Masz już (netto dziś)', zl(hl.liq0)]);
+      meta.push(['Obligacje dorobią na czysto', zl(gain)]);
       meta.push(['Zostaje do spłaty', zl(res.bonds.debt)]);
     }
     if (meta.length) {
@@ -1586,6 +1947,21 @@ var BK2 = (function () {
     $('#r-after').innerHTML = h;
   }
 
+  /* ---------------- obligacje, które już masz ---------------- */
+  function renderHoldResult(res) {
+    var hl = res.holdings, box = $('#r-hold-panel');
+    if (!hl || !hl.lots.length) { box.hidden = true; return; }
+    box.hidden = false;
+    var h = '<div class="tbl-wrap"><table class="after-tbl"><thead><tr><th>Pozycja</th><th>Wartość dziś</th><th>Wykup / sprzedaż</th><th>Da na czysto</th></tr></thead><tbody>';
+    hl.lots.forEach(function (l) {
+      h += '<tr><td>' + l.label + '</td><td>' + zl(l.valueNow) + '</td><td>' + mm(l.exitAbs) + (l.matured ? ' · wykup' : ' · sprzedaż') + '</td><td class="good">' + zl(l.cash) + '</td></tr>';
+    });
+    h += '<tr class="end"><td>Razem</td><td>' + zl(hl.valueNow) + '</td><td></td><td>' + zl(hl.cash) + '</td></tr></tbody></table></div>';
+    var early = hl.lots.some(function (l) { return l.matured; });
+    h += '<p class="hint" style="margin:0">„Da na czysto” – kupony, wykup albo sprzedaż, po opłacie i podatku.' + (early ? ' Pieniądze z wykupu przed końcem dopłat kupują kolejne obligacje według planu.' : '') + '</p>';
+    $('#r-hold').innerHTML = h;
+  }
+
   /* ---------------- 5. plan zakupów ---------------- */
   function segLabel(s) {
     if (s.label === 'END') return '<b>sprzedaż i nadpłata</b>';
@@ -1593,19 +1969,45 @@ var BK2 = (function () {
     if (s.label === 'NONE') return '<b>bez zakupu</b>';
     return '<b>' + s.label + '</b>';
   }
+  function typeCls(label) {
+    var t = String(label).split(' ')[0];
+    return 't-' + ({ END: 'end', CASH: 'cash', NONE: 'cash' }[t] || t.toLowerCase());
+  }
+  function renderTimeline(res) {
+    var segs = res.plan, rows = res.sim.rows;
+    if (!rows.length) return '';
+    var a0 = rows[0].abs, total = rows.length, h = '<div class="tl" role="img" aria-label="Oś czasu zakupów: ' +
+      segs.map(function (s) { return mm(s.from) + '–' + mm(s.to) + ' ' + (s.label === 'END' ? 'sprzedaż' : s.label === 'CASH' ? 'gotówka' : s.label); }).join(', ') + '">';
+    segs.forEach(function (s) {
+      var len = s.to - s.from + 1, show = len / total >= 0.09;
+      var txt = s.label === 'END' ? '' : s.label === 'CASH' || s.label === 'NONE' ? '' : s.label;
+      h += '<div class="tl-seg ' + typeCls(s.label) + '" style="flex:' + len + ' 1 0" title="' + mm(s.from) + (len > 1 ? '–' + mm(s.to) : '') + ': ' + (s.label === 'END' ? 'sprzedaż i nadpłata' : s.label === 'CASH' ? 'gotówka' : s.label) + '">' + (show ? txt : '') + '</div>';
+    });
+    h += '</div><div class="tl-axis" aria-hidden="true">';
+    var years = total / 12, every = years > 8 ? 2 : 1, lastPos = -100;
+    for (var i = 0; i < total; i++) {
+      var a = a0 + i;
+      if (E.monthOf(a) === 1 && E.yearOf(a) % every === 0) {
+        var pos = i / total * 100;
+        if (pos - lastPos >= 9 && pos >= 5 && pos <= 94) { h += '<span style="left:' + pos.toFixed(2) + '%">' + E.yearOf(a) + '</span>'; lastPos = pos; }
+      }
+    }
+    return h + '</div>';
+  }
   function renderPlan(res) {
-    var L = res.loan, segs = res.plan;
-    var h = '<ol class="plan">';
+    var L = res.loan, segs = res.plan, pi = res.planInfo;
+    var h = renderTimeline(res) + '<ol class="plan">';
     segs.forEach(function (s) {
       var len = s.to - s.from + 1, when = s.from === s.to ? mm(s.from) : mm(s.from) + '–' + mm(s.to);
       var cls = s.label === 'END' ? 'end' : (s.label === 'CASH' || s.label === 'NONE' ? 'cash' : '');
-      h += '<li class="' + cls + '"><span class="when">' + when + ':</span> ' + segLabel(s) + (len > 1 && s.label !== 'END' ? ' <span class="muted">(' + len + ' mies.)</span>' : '') + '</li>';
+      h += '<li class="' + cls + '"><i class="dot ' + typeCls(s.label) + '"></i><span class="when">' + when + ':</span> ' + segLabel(s) + (len > 1 && s.label !== 'END' ? ' <span class="muted">(' + len + ' mies.)</span>' : '') + '</li>';
     });
     h += '</ol>';
     var types = {};
     res.sim.rows.forEach(function (r) { r.buys.forEach(function (b) { types[b.type] = (types[b.type] || 0) + b.units; }); });
     var parts = Object.keys(types).map(function (t) { return t + ' – ' + n0(types[t]) + ' szt.'; });
-    if (parts.length) h += '<p class="hint" style="margin:0 0 12px">Łącznie kupisz: ' + parts.join(', ') + '</p>';
+    if (parts.length) h += '<p class="hint" style="margin:0 0 8px">Łącznie kupisz: ' + parts.join(', ') + '</p>';
+    if (pi && pi.simple && pi.loss > 0.5) h += '<p class="hint" style="margin:0 0 12px">Plan uproszczony ' + tip('prosty', 'plan uproszczony') + ' – optymalny, z przeplataniem typów, dałby +' + zl(pi.loss) + ' (' + pct(pi.loss / pi.optNet, 2) + ').</p>';
     $('#r-plan').innerHTML = h;
   }
   function buysText(r) {
@@ -1673,14 +2075,14 @@ var BK2 = (function () {
     var h = rows.some(function (r) { return r.h === prev; }) ? prev : rows[0].h;
     sel.value = String(h);
     var list = res.opt.table[h] || [], endM = mon(res.loan.endAbs), buyAbs = res.loan.endAbs - h;
-    var best = res.opt.choice[h];
+    var best = res.planOpt.choice[h], top = res.opt.choice[h];
     var t = '<p class="hint" style="margin:0 0 8px">Masz 100 zł w ' + mon(buyAbs) + '. Do końca dopłat zostaje ' + h + ' mies. Ile będziesz mieć w ' + endM + '?</p>' +
       '<div class="tbl-wrap"><table><thead><tr><th>Obligacja</th><th class="l">Trzymasz</th><th>Odsetki brutto</th><th>Opłata za wykup</th><th>Podatek Belki</th><th>Netto ze 100 zł</th><th>W ' + endM + ' z reinwestycją</th></tr></thead><tbody>';
     list.forEach(function (it) {
       var r = it.run, info = E.INFO[it.type], hold;
       if (r.matured) hold = 'do wykupu (' + info.months + ' mies.)' + (h > info.months ? ', potem ' + (h - info.months) + ' mies. w kolejnych' : '');
       else hold = h + ' mies., wykup przed terminem';
-      t += '<tr' + (it.type === best ? ' class="best"' : '') + '><td>' + it.type + '</td><td class="l">' + hold + '</td><td>' + zl2(r.gross) + '</td><td>' + (r.fee ? '−' + zl2(r.fee) : '0,00 zł') +
+      t += '<tr' + (it.type === best ? ' class="best"' : '') + '><td>' + it.type + (it.type === best ? ' · w planie' : '') + (it.type === top && top !== best ? ' · najwięcej' : '') + '</td><td class="l">' + hold + '</td><td>' + zl2(r.gross) + '</td><td>' + (r.fee ? '−' + zl2(r.fee) : '0,00 zł') +
         '</td><td>−' + zl2(r.tax) + '</td><td>' + zl2(r.net) + '</td><td>' + zl2(it.f * 100) + '</td></tr>';
     });
     t += '<tr' + (best === 'CASH' ? ' class="best"' : '') + '><td>Gotówka</td><td class="l">' + h + ' mies.</td><td>0,00 zł</td><td>0,00 zł</td><td>0,00 zł</td><td>100,00 zł</td><td>100,00 zł</td></tr>';
@@ -1697,6 +2099,7 @@ var BK2 = (function () {
       if (w.code === 'shortHorizon') out.push(['Za krótki horyzont', 'Do końca dopłat zostało ' + w.months + ' mies. To za mało, żeby jakakolwiek obligacja zarobiła więcej, niż kosztuje wcześniejszy wykup. Pieniądze zostają w gotówce.']);
       if (w.code === 'noBonds') out.push(['Brak obligacji', 'Wszystkie obligacje są wyłączone, więc pieniądze leżą w gotówce na 0%.']);
       if (w.code === 'familyNoLimit') out.push(['ROS/ROD bez limitu', 'Obligacje rodzinne liczymy bez limitu. W rzeczywistości kupisz je tylko do wysokości otrzymanego 800+ – wpisz kwotę świadczeń w trybie ekspert.']);
+      if (w.code === 'holdIgnored') out.push(['Pominięte obligacje', w.items.map(function (x) { return (x.label || '?') + ' – ' + ({ code: 'nieznany kod serii', units: 'brak liczby sztuk', future: 'data zakupu w przyszłości', matured: 'już wykupiona' }[x.reason] || 'błąd'); }).join(', ') + '.']);
       if (w.code === 'oneTimeIgnored') out.push(['Pominięte wpłaty', 'Pominęliśmy ' + w.items.length + ' wpłat' + (w.items.length === 1 ? 'ę' : 'y') + ' jednorazow' + (w.items.length === 1 ? 'ą' : 'e') + ' spoza okresu ' + mm(P.simAbs) + '–' + mm(L.endAbs) + '.']);
     });
     $('#r-warnings').innerHTML = out.map(function (o) { return '<div class="warn" role="note"><b>' + o[0] + '</b>' + o[1] + '</div>'; }).join('');
@@ -1748,6 +2151,9 @@ var BK2 = (function () {
     items.push('Każdą wpłatę od razu zamieniamy na obligacje (100 zł za sztukę) – te, które przy tylu miesiącach do końca dopłat dają najwięcej na czysto.');
     items.push('Nadpłata w okresie dopłat daje tylko ~' + pct(P.r2, 0) + ' ' + tip('nadplata2', 'dlaczego nadpłata daje tylko 2%') + ', bo zmniejsza też dopłatę państwa.');
     items.push('Obligacje rodzinne (ROS, ROD – dla pobierających 800+): <b>' + (P.family.enabled ? 'uwzględniamy' : 'pomijamy') + '</b>.');
+    items.push('Plan zakupów jest możliwie prosty ' + tip('prosty', 'plan uproszczony') + ': upraszczamy go, dopóki kosztuje najwyżej ' + pct(P.planTolerance, 0) + ' wyniku.');
+    var hcount = P.holdings[P.holdings.mode].length;
+    if (hcount) items.push('Obligacje, które już masz (' + hcount + ' poz.), rosną dalej według dzisiejszych założeń; pieniądze z ich wykupu kupują kolejne obligacje według planu.');
     items.push(P.commission > 0 ? 'Bank pobiera <b>' + pct(P.commission) + '</b> prowizji od nadpłaty.' : 'Bank nie pobiera prowizji za nadpłatę (po 36 miesiącach to standard).');
     $('#assumption-list').innerHTML = items.map(function (t) { return '<li>' + t + '</li>'; }).join('');
   }
@@ -1787,6 +2193,14 @@ var BK2 = (function () {
           E.ORDER.forEach(function (b) { if (o.bonds && o.bonds[b]) Object.keys(def.bonds[b]).forEach(function (f) { if (f in o.bonds[b]) def.bonds[b][f] = o.bonds[b][f]; }); });
         } else if (k === 'oneTime') {
           def.oneTime = Array.isArray(o.oneTime) ? o.oneTime.filter(function (x) { return x && typeof x === 'object'; }).map(function (x) { return { month: String(x.month || '1'), year: String(x.year || ''), amount: String(x.amount || '') }; }) : [];
+        } else if (k === 'hold') {
+          var oh = o.hold && typeof o.hold === 'object' ? o.hold : {};
+          var arr = function (a) { return Array.isArray(a) ? a.filter(function (x) { return x && typeof x === 'object'; }) : []; };
+          def.hold = {
+            mode: oh.mode === 'series' ? 'series' : 'types',
+            types: arr(oh.types).map(function (x) { return { type: HOLD_TYPES.indexOf(x.type) >= 0 ? x.type : 'EDO', nominal: String(x.nominal || ''), value: String(x.value || ''), when: x.when === 'before' ? 'before' : 'after' }; }),
+            series: arr(oh.series).map(function (x) { return { code: String(x.code || ''), units: String(x.units || ''), value: String(x.value || ''), rate: String(x.rate || '') }; })
+          };
         } else if (k === 'scen') {
           if (Array.isArray(o.scen) && o.scen.length === 3) def.scen = o.scen.map(String);
         } else if (k === 'inflByYear') {
@@ -1827,9 +2241,12 @@ var BK2 = (function () {
     if (/^bonds\.\w+\.on$/.test(k)) updateBondRows();
     if (k === 'termUnit') updateTermUnit();
     if (k === 'X') updateXNote();
+    if (k === 'hold.mode') renderHoldings();
+    if (/^hold\.series\.\d+\.code$/.test(k)) updateSeriesInfo();
     if (k === 'infl') updateInflPlaceholders();
     if (/^(launch|sim)(Year|Month)$/.test(k)) {
       var r = inflYearsRange();
+      updateSeriesInfo();
       if ($$('#infl-years input').length !== r[1] - r[0] + 1 || ($('#infl-years label') && $('#infl-years label').firstChild.nodeValue !== String(r[0]))) renderInflYears();
     }
     schedule();
@@ -1863,6 +2280,18 @@ var BK2 = (function () {
     } else if (a === 'ot-del') {
       state.oneTime.splice(Number(act.getAttribute('data-i')), 1);
       renderOneTime();
+      schedule();
+    } else if (a === 'hold-add') {
+      var hm = state.hold.mode === 'series' ? 'series' : 'types';
+      state.hold[hm].push(hm === 'types' ? { type: 'EDO', nominal: '', value: '', when: 'after' } : { code: '', units: '', value: '', rate: '' });
+      $('#holdings').open = true;
+      renderHoldings();
+      var rows = $$('#hold-list .h-row'), first = rows.length && $('input, select', rows[rows.length - 1]);
+      if (first) first.focus();
+    } else if (a === 'hold-del') {
+      var hm2 = state.hold.mode === 'series' ? 'series' : 'types';
+      state.hold[hm2].splice(Number(act.getAttribute('data-i')), 1);
+      renderHoldings();
       schedule();
     } else if (a === 'go-expert') {
       e.preventDefault();
@@ -1911,6 +2340,8 @@ var BK2 = (function () {
     renderOneTime();
     renderInflYears();
     syncInputs(d);
+    renderHoldings();
+    if (state.hold.types.length || state.hold.series.length) $('#holdings').open = true;
     updateTiles();
     updateFamily();
     updateBondRows();

@@ -110,8 +110,7 @@ test('13. „Ile muszę odkładać?” → 2 600 lub 2 700 zł, X spłaca, X −
   const res = E.compute(P400({ question: 'need' }));
   ok(res.X === 2600 || res.X === 2700, `X = ${res.X}`);
   const p = P400();
-  const o = E.optimize(p, end, 120);
-  const at = (x) => E.simulate(p, x, o, true).net;
+  const at = (x) => E.simulate(p, x, res.planOpt, true).net;
   ok(at(res.X) >= 240000, `przy X nadpłata ${at(res.X)} < 240 000`);
   ok(at(res.X - 100) < 240000, `przy X − 100 nadpłata ${at(res.X - 100)} ≥ 240 000`);
   return `X = ${res.X} zł (nadpłata ${zl(at(res.X))}; przy ${res.X - 100} zł: ${zl(at(res.X - 100))})`;
@@ -235,6 +234,82 @@ test('formatowanie pl-PL', () => {
   ok(E.fmtPct(0.044) === '4,40%', E.fmtPct(0.044));
   ok(E.fmtMonth(end).replace(/ /g, ' ') === 'paź 2033', E.fmtMonth(end));
   ok(E.fmtMonthLoc(end).replace(/ /g, ' ') === 'październiku 2033', E.fmtMonthLoc(end));
+});
+
+/* ------------------------------------------------------------------ */
+group('Obligacje, które już masz');
+const holdP = (holdings, over = {}) => params(Object.assign({ holdings }, over));
+test('H1. kod serii: EDO0434 = EDO kupione 04.2024, wykup 04.2034', () => {
+  const s = E.parseSeries('edo0434');
+  ok(s && s.type === 'EDO', 'typ');
+  ok(E.fmtMM(s.startAbs) === '04.2024' && E.fmtMM(s.matAbs) === '04.2034', `${E.fmtMM(s.startAbs)} / ${E.fmtMM(s.matAbs)}`);
+  ok(E.parseSeries('XYZ0434') === null && E.parseSeries('EDO1334') === null && E.parseSeries('EDO04') === null, 'złe kody');
+});
+test('H2. B: EDO0434, 10 szt., wartość dziś 1 150 zł → sprzedaż w 10.2033 z opłatą i podatkiem', () => {
+  const p = holdP({ mode: 'series', series: [{ code: 'EDO0434', units: 10, value: 1150 }] });
+  const L = E.loan(p), h = E.buildHoldings(p, L);
+  // 31 mies. od zakupu, 7 mies. w 3. roku (4,5%); do 10.2033 jeszcze 7 pełnych lat i 6 mies. 10. roku
+  const base = 1150 / (1 + 0.045 * 7 / 12), v = base * 1.045 ** 7 * (1 + 0.045 * 6 / 12);
+  const want = v - 30 - (v - 1000 - 30) * 0.19;
+  near(h.flows[83], want, 0.01, 'kwota ze sprzedaży');
+  near(h.cash, want, 0.01, 'brak innych wpływów');
+  ok(h.lots[0].matured === false && E.fmtMM(h.lots[0].exitAbs) === '10.2033', 'sprzedaż na koniec dopłat');
+  return `sprzedaż ${zl(want)}`;
+});
+test('H3. B: COI0628, 20 szt. → kupon w 06.2027, kupon i wykup w 06.2028', () => {
+  const p = holdP({ mode: 'series', series: [{ code: 'COI0628', units: 20 }] });
+  const h = E.buildHoldings(p, E.loan(p));
+  near(h.flows[7], 2000 * 0.04 * 0.81, 1e-9, 'kupon 06.2027');
+  near(h.flows[19], 2000 * 0.04 * 0.81 + 2000, 1e-9, 'kupon i wykup 06.2028');
+  near(h.cash, 2000 + 2 * 64.8, 1e-9, 'razem');
+  ok(h.lots[0].matured === true, 'wykup przed końcem dopłat');
+});
+test('H4. B: seria już wykupiona albo zły kod → pominięta z ostrzeżeniem', () => {
+  const res = E.compute(holdP({ mode: 'series', series: [{ code: 'ROR0526', units: 5 }, { code: 'ABC', units: 1 }] }));
+  const w = res.warnings.find((x) => x.code === 'holdIgnored');
+  ok(w && w.items.length === 2 && w.items[0].reason === 'matured' && w.items[1].reason === 'code', JSON.stringify(w));
+  near(res.bonds.net, resDef.bonds.net, 1e-6, 'wynik jak bez obligacji');
+});
+test('H5. C: EDO 10 000 zł nominału, 11 000 zł dziś – wykup po / przed końcem dopłat', () => {
+  const after = E.buildHoldings(holdP({ mode: 'types', types: [{ type: 'EDO', nominal: 10000, value: 11000, before: false }] }), E.loan(params()));
+  const before = E.buildHoldings(holdP({ mode: 'types', types: [{ type: 'EDO', nominal: 10000, value: 11000, before: true }] }), E.loan(params()));
+  ok(after.lots[0].exitAbs === end && before.lots[0].exitAbs === E.absOf(2026, 11) + 42, 'miesiące wyjścia');
+  const v83 = 11000 * 1.045 ** (83 / 12), v42 = 11000 * 1.045 ** (42 / 12);
+  near(after.cash, v83 - 300 - (v83 - 10000 - 300) * 0.19, 0.01, 'po: z opłatą 3 zł/szt.');
+  near(before.cash, v42 - (v42 - 10000) * 0.19, 0.01, 'przed: bez opłaty');
+  return `po: ${zl(after.cash)}, przed: ${zl(before.cash)} (+ reinwestycja wg planu)`;
+});
+test('H6. posiadane obligacje zmniejszają wymagane X i zwiększają nadpłatę', () => {
+  const holdings = { mode: 'types', types: [{ type: 'EDO', nominal: 30000, value: 33000, before: false }] };
+  const need = E.compute(holdP(holdings, { question: 'need' }));
+  ok(need.X < 3300, `X = ${need.X}`);
+  const pay = E.compute(holdP(holdings));
+  ok(pay.bonds.net > resDef.bonds.net + pay.holdings.liq0, 'nadpłata rośnie o więcej niż dzisiejsza wartość netto');
+  near(pay.D.sock, 83000 + pay.holdings.cash, 1e-6, 'skarpeta dostaje gotówkę z obligacji');
+  ok(pay.C.balance < resDef.C.balance, 'wariant C też je uwzględnia');
+  return `X: 3300 → ${need.X} zł; nadpłata ${zl(pay.bonds.net)}`;
+});
+
+/* ------------------------------------------------------------------ */
+group('Prosty plan zakupów (prostota wygrywa do 1%)');
+test('P1. domyślnie: jedna obligacja przez cały okres, strata ≤ 1% względem planu optymalnego', () => {
+  const kinds = new Set(resDef.sim.rows.flatMap((r) => r.buys.map((b) => b.type)));
+  ok(resDef.planInfo.simple, 'plan powinien być uproszczony');
+  ok(kinds.size === 1, `kupowane typy: ${[...kinds].join(', ')}`);
+  ok(resDef.planInfo.loss >= 0 && resDef.planInfo.loss <= 0.01 * resDef.planInfo.optNet, `strata ${resDef.planInfo.loss}`);
+  return `${[...kinds].join('')} przez cały okres; plan optymalny dałby +${zl(resDef.planInfo.loss)} (${(resDef.planInfo.loss / resDef.planInfo.optNet * 100).toFixed(2)}%)`;
+});
+test('P2. plan prosty nie przeplata: każdy typ kupujesz w jednym ciągłym okresie', () => {
+  for (const p of [params(), params({ inflation: 0.05 }), params({ launchAbs: E.absOf(2025, 3) }), params({ family: { enabled: true, monthly: 0 } })]) {
+    const segs = E.compute(p).plan.filter((s) => s.label !== 'END' && s.label !== 'NONE');
+    const labels = segs.map((s) => s.label);
+    ok(new Set(labels).size === labels.length, `przeplatanie: ${labels.join(' → ')}`);
+  }
+});
+test('P3. tolerancja 0 → plan optymalny', () => {
+  const res = E.compute(params({ planTolerance: 0 }));
+  ok(!res.planInfo.simple && Math.abs(res.planInfo.loss) < 1e-6, 'plan optymalny');
+  near(res.bonds.net, 93256, 1, 'nadpłata jak w planie optymalnym');
 });
 
 console.log(`\n${pass} zaliczonych, ${fail} niezaliczonych`);
