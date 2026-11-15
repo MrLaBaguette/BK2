@@ -108,6 +108,7 @@ h1 { font-size: clamp(23px, 4.6vw, 34px); line-height: 1.18; margin: 0 0 8px; le
 
 /* ---------- układ ---------- */
 .layout { display: grid; gap: 4px 24px; padding-block: 20px 28px; }
+.layout > * { min-width: 0; }
 @media (min-width: 980px) {
   .layout { grid-template-columns: minmax(340px, 400px) minmax(0, 1fr); align-items: start; }
 }
@@ -241,7 +242,7 @@ details[open] > summary::before { transform: rotate(90deg); }
 /* ---------- słupki porównania ---------- */
 .bars { display: grid; gap: 14px; margin: 4px 0 14px; }
 .bar-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: end; }
-.bar-name b { display: block; }
+.bar-name b { display: inline; }
 .bar-name span { color: var(--muted); font-size: 13px; }
 .bar-val { font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
 .bar-val small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
@@ -288,6 +289,8 @@ details[open] > summary::before { transform: rotate(90deg); }
 .scen dd small { display: block; font-weight: 400; font-size: 13px; color: var(--muted); }
 .scen .opt dd { color: var(--accent-strong); }
 .scen .shock small { color: var(--err); }
+.after-tbl th, .after-tbl td { white-space: normal; vertical-align: top; padding: 7px 8px; }
+.after-tbl td.good { color: var(--accent-strong); font-weight: 650; }
 .paid { background: var(--accent-soft); border-radius: 12px; padding: 12px 14px; margin: 0 0 12px; font-weight: 600; }
 
 /* ---------- plan ---------- */
@@ -542,7 +545,7 @@ tr.end td { background: var(--surface-2); font-weight: 650; }
       </section>
 
       <section class="panel" aria-labelledby="h-plan">
-        <h2 id="h-plan">Plan zakupów</h2>
+        <h2 id="h-plan">Plan zakupów <button type="button" class="tip" data-tip="plan" aria-label="Wyjaśnienie: jak czytać plan">?</button></h2>
         <div id="r-plan"></div>
         <details class="sub-details" id="d-table">
           <summary>Pełny harmonogram miesiąc po miesiącu</summary>
@@ -570,10 +573,7 @@ tr.end td { background: var(--surface-2); font-weight: 650; }
 
 <footer class="foot">
   <div class="wrap">
-    <h2>Założenia i zastrzeżenia</h2>
-    <p><b>To symulacja, nie porada finansowa.</b> Oprocentowanie przyszłych emisji obligacji i stóp kredytu jest nieznane. Zasady nadpłaty i prowizje sprawdź w umowie lub w banku.</p>
-    <p>Kluczowe uproszczenie: oferta obligacji skarbowych w kolejnych miesiącach jest taka sama jak w listopadzie 2026. Odsetki liczymy w pełnych miesiącach, podatek Belki i opłaty za wcześniejszy wykup są zawsze wliczone. Pomijamy obligacje OTS, konta IKE/IKZE, zamianę obligacji po 99,90 zł oraz wyjątki od utraty dopłat przy nadpłacie w pierwszych 36 miesiącach.</p>
-    <p>Nic nie wysyłamy ani nie zapisujemy – wszystko liczy się w Twojej przeglądarce.</p>
+    <p><b>To symulacja, nie porada finansowa.</b> Przyszłe oprocentowanie obligacji i kredytu jest nieznane – zakładamy, że oferta obligacji zostanie taka jak w listopadzie 2026. Zasady nadpłaty sprawdź w umowie lub w banku. Wszystko liczy się w Twojej przeglądarce.</p>
   </div>
 </footer>
 
@@ -1099,6 +1099,9 @@ var BK2 = (function () {
     raty: 'Malejąca: stała część kapitału + odsetki od salda, więc rata co miesiąc trochę spada. Równa (annuitetowa): co miesiąc ta sama kwota, na początku głównie odsetki.',
     doplata: 'Przez pierwsze 120 miesięcy państwo dopłaca do odsetek, więc płacisz efektywnie ok. 2%. Dopłata jest liczona od salda kredytu, a raty są w tym czasie malejące.',
     nadplata2: 'Nadpłata zmniejsza saldo, ale razem z nim zmniejsza dopłatę państwa (liczoną od salda). Oszczędzasz więc tylko swoje ~2% odsetek, a obligacje skarbowe dają więcej – nawet po podatku.',
+    warC: 'Wydajesz co miesiąc tyle samo co przy obligacjach (rata + odkładana kwota), ale nadwyżkę od razu nadpłacasz. Bank po nadpłacie obniża ratę, więc różnicę też nadpłacamy. Kwoty z pierwszych 36 miesięcy kredytu nadpłacamy dopiero w 37. miesiącu.',
+    warD: 'Te same pieniądze leżą w gotówce na 0% i w dniu końca dopłat idą na jednorazową nadpłatę.',
+    plan: 'Co miesiąc kupujesz obligacje za całą dostępną gotówkę (wpłata, odsetki, pieniądze z wykupu), w pełnych setkach. Każdą trzymasz do wykupu albo do końca dopłat – wtedy sprzedajesz wszystko i nadpłacasz kredyt.',
     portfel: 'Ile dostałbyś na rękę, gdybyś w danym miesiącu sprzedał wszystkie obligacje: po opłatach za wcześniejszy wykup i po podatku Belki, razem z gotówką czekającą na zakup.'
   };
   var QUIPS = [
@@ -1428,19 +1431,19 @@ var BK2 = (function () {
       }
     } else if (need) {
       if (res.X === 0) {
-        h += '<p class="kicker">Odpowiedź</p><p>Twoje jednorazowe wpłaty wystarczą, żeby w ' + end + ' spłacić cały kredyt 🎉</p><span class="big">' + zl(S) + '</span><p>Nie musisz odkładać co miesiąc.</p>';
+        h += '<p>Twoje jednorazowe wpłaty wystarczą, żeby w ' + end + ' spłacić cały kredyt 🎉</p><span class="big">' + zl(S) + '</span><p>Nie musisz odkładać co miesiąc.</p>';
       } else {
-        h += '<p class="kicker">Odpowiedź</p><p>Żeby spłacić cały kredyt w ' + end + ', odkładaj</p><span class="big">' + zl(res.X) + '</span><p>miesięcznie' + oneTxt + '.</p>';
+        h += '<p>Żeby spłacić cały kredyt w ' + end + ', odkładaj</p><span class="big">' + zl(res.X) + '</span><p>miesięcznie' + oneTxt + '.</p>';
       }
       meta.push(['Wpłacisz łącznie', zl(res.sim.deposits)]);
       meta.push(['W ' + mon(L.endAbs) + ' będziesz mieć', zl(res.bonds.net)]);
       meta.push(['Nadwyżka do ręki', zl(res.bonds.surplus)]);
     } else if (res.bonds.debt <= 0) {
-      h += '<p class="kicker">Odpowiedź</p><p>Odkładając <b>' + zl(res.X) + '</b> miesięcznie' + oneTxt + ', w ' + end + ' spłacisz cały kredyt 🎉</p><span class="big">' + zl(S) + '</span><p>i zostanie Ci ' + zl(res.bonds.surplus) + '.</p>';
+      h += '<p>Odkładając <b>' + zl(res.X) + '</b> miesięcznie' + oneTxt + ', w ' + end + ' spłacisz cały kredyt 🎉</p><span class="big">' + zl(S) + '</span><p>i zostanie Ci ' + zl(res.bonds.surplus) + '.</p>';
       meta.push(['Wpłacisz łącznie', zl(res.sim.deposits)]);
       meta.push(['Obligacje dorobią na czysto', zl(res.bonds.net - res.sim.deposits)]);
     } else {
-      h += '<p class="kicker">Odpowiedź</p><p>Odkładając <b>' + zl(res.X) + '</b> miesięcznie' + oneTxt + ', w ' + end + ' spłacisz</p><span class="big">' + zl(res.bonds.net) + '</span><p>z <b>' + zl(S) + '</b> długu.</p>';
+      h += '<p>Odkładając <b>' + zl(res.X) + '</b> miesięcznie' + oneTxt + ', w ' + end + ' spłacisz</p><span class="big">' + zl(res.bonds.net) + '</span><p>z <b>' + zl(S) + '</b> długu.</p>';
       meta.push(['Wpłacisz łącznie', zl(res.sim.deposits)]);
       meta.push(['Obligacje dorobią na czysto', zl(res.bonds.net - res.sim.deposits)]);
       meta.push(['Zostaje do spłaty', zl(res.bonds.debt)]);
@@ -1458,16 +1461,16 @@ var BK2 = (function () {
   function renderCompare(res, P) {
     var S = res.loan.S120, feel = state.feelings;
     var rows = [
-      { name: 'Obligacje', sub: 'odkładasz i kupujesz obligacje skarbowe', debt: res.bonds.debt, plus: res.bonds.surplus, cls: 'is-accent' },
-      { name: 'Nadpłacanie na bieżąco', sub: 'te same pieniądze co miesiąc na nadpłatę', debt: res.C.balance, plus: res.C.leftover, cls: '' },
-      { name: 'Skarpeta', sub: 'te same pieniądze w szufladzie (0%)', debt: res.D.debt, plus: res.D.surplus, cls: feel ? 'is-you' : '' }
+      { name: 'Obligacje', tip: '', debt: res.bonds.debt, plus: res.bonds.surplus, cls: 'is-accent' },
+      { name: 'Nadpłacanie na bieżąco', tip: tip('warC', 'nadpłacanie na bieżąco'), debt: res.C.balance, plus: res.C.leftover, cls: '' },
+      { name: 'Skarpeta', tip: tip('warD', 'skarpeta'), debt: res.D.debt, plus: res.D.surplus, cls: feel ? 'is-you' : '' }
     ];
     var max = Math.max(S, rows[0].debt, rows[1].debt, rows[2].debt) || 1;
-    var h = '<h2 id="h-cmp">Dług po 10 latach – porównanie</h2><div class="bars">';
+    var h = '<h2 id="h-cmp">Dług po 10 latach</h2><div class="bars">';
     rows.forEach(function (r) {
       var w = Math.max(0, Math.min(100, r.debt / max * 100));
       h += '<div class="bar-row ' + r.cls + '">' +
-        '<div class="bar-name"><b>' + r.name + (r.cls === 'is-you' ? '<span class="you">Ty</span>' : '') + '</b><span>' + r.sub + '</span></div>' +
+        '<div class="bar-name"><b>' + r.name + (r.cls === 'is-you' ? '<span class="you">Ty</span>' : '') + '</b> ' + r.tip + '</div>' +
         '<div class="bar-val">' + zl(r.debt) + (r.plus > 0.5 ? '<small>+ ' + zl(r.plus) + ' nadwyżki</small>' : '') + '</div>' +
         '<div class="bar-track" aria-hidden="true"><div class="bar" style="width:' + w.toFixed(2) + '%"></div></div></div>';
     });
@@ -1475,17 +1478,14 @@ var BK2 = (function () {
     var posB = rows[0].plus - rows[0].debt, posC = rows[1].plus - rows[1].debt, diff = posB - posC;
     var y = res.irr !== null ? pct(res.irr, 1) : null, r2 = pct(P.r2, 0);
     if (res.months <= 1 || res.sim.deposits <= 0) {
-      h += '<p class="verdict">Przy tych danych nie ma czego porównywać – do końca dopłat zostało za mało czasu albo nic nie odkładasz.</p>';
+      h += '<p class="verdict">Za mało czasu do końca dopłat albo nic nie odkładasz – nie ma czego porównać.</p>';
     } else if (diff > 0.5) {
-      h += '<p class="verdict">Obligacje wygrywają o <b>' + zl(diff) + '</b>' + (y ? ', bo zarabiają na czysto ok. <b>' + y + '</b> rocznie, a nadpłata kredytu daje tylko ~' + r2 + ' ' + tip('nadplata2', 'dlaczego nadpłata daje tylko 2%') : '') + '.</p>';
+      h += '<p class="verdict">Obligacje wygrywają o <b>' + zl(diff) + '</b>' + (y ? ': zarabiają na czysto ok. <b>' + y + '</b> rocznie, a nadpłata daje ~' + r2 + ' ' + tip('nadplata2', 'dlaczego nadpłata daje tylko 2%') : '') + '.</p>';
     } else if (diff < -0.5) {
-      h += '<p class="verdict">Przy tych założeniach nadpłacanie na bieżąco wychodzi lepiej o <b>' + zl(-diff) + '</b>' + (y ? '. Obligacje zarobiłyby na czysto tylko ok. ' + y + ' rocznie – mniej niż ~' + r2 + ' z nadpłaty ' + tip('nadplata2', 'dlaczego nadpłata daje tylko 2%') : '') + '. Zwykle to znak, że do końca dopłat zostało za mało czasu.</p>';
+      h += '<p class="verdict">Tu lepsze jest nadpłacanie na bieżąco, o <b>' + zl(-diff) + '</b>' + (y ? ': obligacje zarobią na czysto tylko ok. ' + y + ' rocznie' : '') + '.</p>';
     } else {
-      h += '<p class="verdict">Obligacje i nadpłacanie na bieżąco wychodzą praktycznie tak samo.</p>';
+      h += '<p class="verdict">Obligacje i nadpłacanie na bieżąco wychodzą tak samo.</p>';
     }
-    h += '<ul class="cmp-notes">' +
-      '<li><b>Nadpłacanie na bieżąco:</b> wydajesz co miesiąc tyle samo (rata + ' + zl(res.X) + '). Bank po nadpłacie obniża ratę, więc różnicę też nadpłacamy.' + (res.C.early36.length ? ' Kwoty z pierwszych 36 miesięcy kredytu zbieramy i nadpłacamy w ' + mon(res.C.payAbs) + '.' : '') + '</li>' +
-      '<li><b>Skarpeta:</b> te same pieniądze leżą na 0% i w ' + mon(res.loan.endAbs) + ' idą na jednorazową nadpłatę.' + (res.feelings.cost > 0.5 ? ' Przegrywa z obligacjami o ' + zl(res.feelings.cost) + '.' : '') + '</li></ul>';
     $('#r-compare').innerHTML = h;
   }
 
@@ -1555,47 +1555,47 @@ var BK2 = (function () {
         ? '<span><i class="lg-sock"></i>Skarpeta (0%)</span><span><i class="lg-faint"></i>Obligacje – dla porównania</span>'
         : '<span><i class="lg-port"></i>Portfel obligacji netto ' + tip('portfel', 'wartość portfela netto') + '</span>');
     var note;
-    if (feel) note = 'Skarpeta rośnie tylko o to, co do niej włożysz. W ' + mon(L.endAbs) + ' będziesz mieć ' + zl(res.D.sock) + ' zamiast ' + zl(res.bonds.net) + ' z obligacji.';
-    else if (res.cross) note = 'Od <b>' + mon(res.cross.abs) + '</b> portfel jest wart więcej niż saldo kredytu – od tego miesiąca mógłbyś spłacić całość.';
-    else note = 'Portfel nie dogania salda przed końcem dopłat. W ' + mon(L.endAbs) + ' spłacisz nim ' + pct(Math.min(1, res.bonds.net / L.S120), 0) + ' pozostałego długu.';
+    if (feel) note = 'W ' + mon(L.endAbs) + ': skarpeta ' + zl(res.D.sock) + ', obligacje ' + zl(res.bonds.net) + '.';
+    else if (res.cross) note = 'Od <b>' + mon(res.cross.abs) + '</b> portfel przewyższa dług – możesz spłacić całość.';
+    else note = 'W ' + mon(L.endAbs) + ' portfel pokryje ' + pct(Math.min(1, res.bonds.net / L.S120), 0) + ' długu.';
     $('#r-chart-note').innerHTML = note;
   }
 
   /* ---------------- 4. po dopłatach ---------------- */
+  function tys(x) { return E.fmtNum(x / 1000, 1) + NB + 'tys.' + NB + 'zł'; }
+  function range(list, f) {
+    var v = list.map(f), lo = Math.min.apply(null, v), hi = Math.max.apply(null, v);
+    return Math.abs(hi - lo) < 50 ? tys(lo) : E.fmtNum(lo / 1000, 1) + '–' + tys(hi);
+  }
   function renderAfter(res, P) {
-    var L = res.loan, N0 = P.n - E.T_SUB;
-    var h = '<p class="after-head">Twoja rata teraz (nr ' + (L.m0 + 1) + '): <b>' + zl(res.rataNow) + '</b>. Ostatnia rata z dopłatą (nr 120, ' + mon(L.endAbs) + '): <b>' + zl(res.rataLast) + '</b>. ' +
-      'Potem dopłaty znikają, a kredyt przechodzi na raty równe ' + tip('raty', 'rata malejąca i równa') + ' przez ' + E.fmtDuration(N0) + ' ze zmiennym oprocentowaniem ' + tip('wibor', 'wskaźnik WIBOR/POLSTR') + '.</p>';
-    var paid = res.after.length && res.after[0].paidOff;
-    if (paid) h += '<p class="paid">Spłacasz cały kredyt 🎉 – po dopłatach nie płacisz już żadnej raty. Nadwyżka do ręki: ' + zl(res.bonds.surplus) + '.</p>';
-    h += '<div class="scens">';
-    res.after.forEach(function (s) {
-      var jump = s.base - res.rataLast;
-      h += '<article class="scen"><h3>' + pct(s.rate, 1) + ' <small>wskaźnik + marża</small></h3><dl>' +
-        '<div' + (jump > 0.5 ? ' class="shock"' : '') + '><dt>Rata bez żadnej strategii</dt><dd>' + zl(s.base) + '<small>' + (jump >= 0 ? '+' : '−') + zl(Math.abs(jump)) + ' względem ostatniej raty z dopłatą</small></dd></div>';
-      if (paid) {
-        h += '<div class="opt"><dt>Z obligacjami</dt><dd>0 zł<small>kredyt spłacony, oszczędzasz ' + zl(s.baseInt) + ' odsetek</small></dd></div>';
-      } else {
-        h += '<div class="opt"><dt>Niższa rata (okres bez zmian)</dt><dd>' + zl(s.low) + '<small>−' + zl(s.base - s.low) + ' / mies. · ' + zl(s.saveLow) + ' mniej odsetek</small></dd></div>' +
-          '<div class="opt"><dt>Krótszy okres (rata bez zmian)</dt><dd>' + (s.shorterBy > 0 ? 'o ' + E.fmtDuration(s.shorterBy) + ' krócej' : 'bez zmian') + '<small>rata ' + zl(s.base) + ' · ' + zl(s.saveShort) + ' mniej odsetek</small></dd></div>';
-      }
-      h += '</dl></article>';
+    var L = res.loan, sc = res.after;
+    var paid = sc.length && sc[0].paidOff;
+    var h = '<p class="after-head">Rata dziś: <b>' + zl(res.rataNow) + '</b> · ostatnia z dopłatą (' + mon(L.endAbs) + '): <b>' + zl(res.rataLast) + '</b> ' + tip('raty', 'rata malejąca i równa') + '</p>';
+    if (paid) h += '<p class="paid">Spłacasz cały kredyt 🎉 Nadwyżka do ręki: ' + zl(res.bonds.surplus) + '.</p>';
+    h += '<div class="tbl-wrap"><table class="after-tbl"><thead><tr><th>Stopa ' + tip('wibor', 'wskaźnik WIBOR/POLSTR') + '</th><th>Bez strategii</th>' +
+      (paid ? '<th>Z obligacjami</th>' : '<th>Niższa rata</th><th>Krócej o</th>') + '</tr></thead><tbody>';
+    sc.forEach(function (s) {
+      h += '<tr><td>' + pct(s.rate, 1) + '</td><td>' + zl(s.base) + '</td>' +
+        (paid ? '<td class="good">0 zł</td>'
+          : '<td class="good">' + zl(s.low) + '</td><td class="good">' + (s.shorterBy > 0 ? E.fmtNum(s.shorterBy / 12, 1) + NB + 'roku' : '—') + '</td>') + '</tr>';
     });
-    h += '</div><p class="hint" style="margin:10px 0 0">Oszczędność odsetek liczona od raty nr 121 do końca kredytu, względem spłaty bez żadnej strategii. ' +
-      (state.feelings ? 'W wariancie „skarpeta” kwoty są inne – tu pokazujemy wynik z obligacjami.' : '') + '</p>';
+    h += '</tbody></table></div>';
+    if (!paid && sc.length) {
+      h += '<p class="hint" style="margin:0">Mniej odsetek niż bez strategii: niższa rata ' + range(sc, function (s) { return s.saveLow; }) + ', krótszy okres ' + range(sc, function (s) { return s.saveShort; }) + '.</p>';
+    }
     $('#r-after').innerHTML = h;
   }
 
   /* ---------------- 5. plan zakupów ---------------- */
   function segLabel(s) {
-    if (s.label === 'END') return '<b>sprzedaż wszystkiego</b> i nadpłata kredytu';
-    if (s.label === 'CASH') return '<b>gotówka</b> – żadna obligacja nie zarobi w tak krótkim czasie';
-    if (s.label === 'NONE') return '<b>bez zakupu</b> – za mało gotówki na 1 sztukę';
+    if (s.label === 'END') return '<b>sprzedaż i nadpłata</b>';
+    if (s.label === 'CASH') return '<b>gotówka</b>';
+    if (s.label === 'NONE') return '<b>bez zakupu</b>';
     return '<b>' + s.label + '</b>';
   }
   function renderPlan(res) {
     var L = res.loan, segs = res.plan;
-    var h = '<p class="hint">Co miesiąc kupujesz obligacje za całą dostępną gotówkę – wpłatę, odsetki i pieniądze z wykupu – w pełnych setkach. Każdą obligację trzymasz do wykupu albo do ' + mon(L.endAbs) + ', kiedy sprzedajesz wszystko ' + tip('wykup', 'przedterminowy wykup') + ' i nadpłacasz kredyt.</p><ol class="plan">';
+    var h = '<ol class="plan">';
     segs.forEach(function (s) {
       var len = s.to - s.from + 1, when = s.from === s.to ? mm(s.from) : mm(s.from) + '–' + mm(s.to);
       var cls = s.label === 'END' ? 'end' : (s.label === 'CASH' || s.label === 'NONE' ? 'cash' : '');
@@ -1684,7 +1684,7 @@ var BK2 = (function () {
         '</td><td>−' + zl2(r.tax) + '</td><td>' + zl2(r.net) + '</td><td>' + zl2(it.f * 100) + '</td></tr>';
     });
     t += '<tr' + (best === 'CASH' ? ' class="best"' : '') + '><td>Gotówka</td><td class="l">' + h + ' mies.</td><td>0,00 zł</td><td>0,00 zł</td><td>0,00 zł</td><td>100,00 zł</td><td>100,00 zł</td></tr>';
-    t += '</tbody></table></div><p class="hint">„Netto ze 100 zł” – sama obligacja, bez reinwestycji. „Z reinwestycją” – gdy odsetki wypłacane w trakcie i pieniądze z wykupu od razu kupujesz dalej najlepszą obligacją. Wybór robi matematyka, nie intuicja: przy niektórych horyzontach wygrywa obligacja krótsza, bo nie płacisz opłaty za wcześniejszy wykup. Kapitalizacja ' + tip('kapitalizacja', 'kapitalizacja') + ', podatek Belki ' + tip('belka', 'podatek Belki') + '.</p>';
+    t += '</tbody></table></div><p class="hint">„Z reinwestycją” – odsetki i pieniądze z wykupu od razu kupujesz dalej najlepszą obligacją. ' + tip('kapitalizacja', 'kapitalizacja') + '</p>';
     $('#r-why').innerHTML = t;
   }
 
@@ -1692,7 +1692,7 @@ var BK2 = (function () {
   function renderWarnings(res, P) {
     var L = res.loan, out = [];
     res.warnings.forEach(function (w) {
-      if (w.code === 'early36') out.push(['Nadpłata w pierwszych 36 miesiącach', 'Nadpłata w pierwszych 36 miesiącach od uruchomienia kredytu może oznaczać utratę dopłat (wyjątki zależą m.in. od wkładu własnego). W porównaniu „nadpłacanie na bieżąco” kwoty z okresu ' + mm(w.from) + '–' + mm(w.to) + ' zbieramy bez odsetek i nadpłacamy jednorazowo w ' + mm(w.payAbs) + ' (37. rata). Strategia z obligacjami tego problemu nie ma – nadpłacasz dopiero w ' + mm(L.endAbs) + '.']);
+      if (w.code === 'early36') out.push(['Nadpłata w pierwszych 36 miesiącach', 'Nadpłata w pierwszych 36 miesiącach kredytu może kosztować utratę dopłat. W porównaniu „nadpłacanie na bieżąco” kwoty z ' + mm(w.from) + '–' + mm(w.to) + ' nadpłacamy dopiero w ' + mm(w.payAbs) + '. Obligacje tego problemu nie mają.']);
       if (w.code === 'notMultiple') out.push(['Kwota niepodzielna przez 100 zł', 'Obligacje kosztują 100 zł za sztukę, więc liczymy ' + zl(w.buy) + '. Reszta (' + zl(w.rest) + ') czeka i dołącza do następnego zakupu.']);
       if (w.code === 'shortHorizon') out.push(['Za krótki horyzont', 'Do końca dopłat zostało ' + w.months + ' mies. To za mało, żeby jakakolwiek obligacja zarobiła więcej, niż kosztuje wcześniejszy wykup. Pieniądze zostają w gotówce.']);
       if (w.code === 'noBonds') out.push(['Brak obligacji', 'Wszystkie obligacje są wyłączone, więc pieniądze leżą w gotówce na 0%.']);
